@@ -1,8 +1,4 @@
 
-layout: default
-title: "Perlin Map Generation"
-filename: perlinMapGen.md
-
 # Water Shaders and Perlin Noise
 
 I've started to work on my game project once again and wanted to start creating enviroments. 
