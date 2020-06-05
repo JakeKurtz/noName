@@ -33,13 +33,12 @@ def genTerrain(size, scale):
     return noiseMap
     
 mapTerrain = genTerrain(1024, 500)
-    
 ```
 <p align="center">
   <img width="500" height="500" src="https://i.imgur.com/zOPyT3f.png">
 </p>
 
-Next, I simplified the image by limiting the number of levels used.
+Next, I simplified the image by limiting the number of levels used. Here I'm using 8 levels of grey.
 
 ```python
 def colorNoiseMap(noiseMap, numberOfColors):
@@ -55,7 +54,6 @@ def colorNoiseMap(noiseMap, numberOfColors):
 
     return noiseMapColored
 ```
-Here I'm using 8 levels of grey.
 
 <p align="center">
   <img width="500" height="500" src="https://i.imgur.com/XbH1KG2.png">
