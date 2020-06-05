@@ -36,7 +36,7 @@ mapTerrain = genTerrain(1024, 500)
     
 ```
 <p align="center">
-  <img width="300" height="300" src="https://i.imgur.com/zOPyT3f.png">
+  <img width="500" height="500" src="https://i.imgur.com/zOPyT3f.png">
 </p>
 
 Next, I simplified the image by limiting the number of levels used.
@@ -58,7 +58,7 @@ def colorNoiseMap(noiseMap, numberOfColors):
 Here I'm using 8 levels of grey.
 
 <p align="center">
-  <img width="300" height="300" src="https://i.imgur.com/XbH1KG2.png">
+  <img width="500" height="500" src="https://i.imgur.com/XbH1KG2.png">
 </p>
 
 I wanted the darker regions in the image to be the bodies of water and to have the lighter regions 
@@ -66,7 +66,7 @@ populated with trees, grass, and other foliage.
 Using cv2, I found the contours of each body of water and store that as a list of points.
 
 <p align="center">
-  <img width="300" height="300" src="https://i.imgur.com/m2nMyn3.png">
+  <img width="500" height="500" src="https://i.imgur.com/m2nMyn3.png">
 </p>
 
 Each of these contours are then triangulated (thanks to [nickves](https://gis.stackexchange.com/questions/316697/delaunay-triangulation-algorithm-in-shapely-producing-erratic-result))
@@ -109,7 +109,7 @@ def createWavefrontOBJ(lakes):
 ```
 
 <p align="center">
-  <img width="300" height="300" src="https://i.imgur.com/lRkRei3.png">
+  <img width="500" height="500" src="https://i.imgur.com/lRkRei3.png">
 </p>
 
 The code is not the nicest, but I did have a lot of fun writing this up. The only
