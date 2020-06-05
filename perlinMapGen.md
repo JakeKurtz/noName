@@ -1,9 +1,8 @@
----
+
 layout: page
 title: "Perlin Map Generation"
+theme: jekyll-theme-midnight
 filename: perlinMapGen.md
----
-
 
 # Water Shaders and Perlin Noise
 
