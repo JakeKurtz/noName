@@ -1,7 +1,6 @@
 
-layout: page
+layout: default
 title: "Perlin Map Generation"
-theme: jekyll-theme-midnight
 filename: perlinMapGen.md
 
 # Water Shaders and Perlin Noise
