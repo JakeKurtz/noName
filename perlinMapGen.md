@@ -1,9 +1,13 @@
 
-# Water Shaders and Perlin Noise
+## Noise and Terrain Generation
 
-I've started to work on my game project once again and wanted to start creating enviroments. 
-In the past I've spent a ludicris amount of time mundanly placing objects around a map. Not only is this boring, but it's painful. So this time around I
-decided to create procedural maps with automatic foliage placement using possian disk distribution and perlin noise.  
+I've started to work on my game project once again and wanted to start creating interesting and natural enviroments. 
+In the past I've spent a ludicris amount of time mundanly placing objects around a map. Not only is this boring, but it's painful. So this time around I decided to create procedural maps with automatic foliage placement by using a combination of possian disk distribution and perlin noise. 
+
+I was inspired by this [video](https://www.youtube.com/watch?v=NfizT369g60) on procedural environments for FarCry 5.
+
+This post mainly deals with generating the main terrain height map and isolating the lowest (or darkest) regions into
+a wavefront obj file. 
 
 I started by generating a simple image of simplex noise.
 
