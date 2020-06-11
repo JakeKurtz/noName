@@ -1,4 +1,4 @@
-Continuation of my exploration of perlin noise.
+## A continuation of my exploration of noise.
 
 So after creating the bodies of water, I needed a way to give them "life". After some googling, I came across this [twitter post](https://twitter.com/TheRujiK/status/1208035937671884800)
 and thought it looked pretty badass. So for the most part, that's what I was using for a reference.
