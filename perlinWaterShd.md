@@ -3,7 +3,7 @@
 So after creating the bodies of water, I needed a way to give them "life". After some googling, I came across this [twitter post](https://twitter.com/TheRujiK/status/1208035937671884800)
 and thought it looked pretty badass. So for the most part, that's what I was using for a reference.
 
-First things first was creating a way to calculate simplex noise. I'm lazy naturaly, so instead of reinventing the wheel 
+First things first was creating a way to calculate simplex noise. I'm lazy naturally, so instead of reinventing the wheel 
 I found this [awesome resource](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83) for noise functions.
 
 This was the noise code that was used to generate the follwing image.
