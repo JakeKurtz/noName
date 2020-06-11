@@ -116,3 +116,5 @@ def createWavefrontOBJ(lakes):
 
 The code is not the nicest, but I did have a lot of fun writing this up. The only
 thing that was a pain was getting all the libraries installed correctly.
+
+The next thing to do is create a shader for the water and create a way to place objects using poisson disk distribution, which shouldn't be difficult.
