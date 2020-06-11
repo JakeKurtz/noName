@@ -60,7 +60,7 @@ float OctavePerlin(vec2 v, float persistence) {
 And here are the results, which look as expected
 
 <p align="center">
-  <img width="500" height="500" src="images/noise1.png">
+  <img width="500" height="500" src="images/noise1.PNG">
 </p>
 
 Now it's time to start messing around and trying to get this to look like water!
@@ -108,7 +108,7 @@ color += vec3(OctavePerlin(pos + vel2, 0.5));
 
 I really like the look and movement at this point. The only problem is that this doesn't look like water.
 The idea is that this black and white scrolling texture is a height map, so all we need to do is find a way to convert a height map into a normal map.
-This is accomplished by using image processing technique called the (Sobel operator)[https://en.wikipedia.org/wiki/Sobel_operator]. So by sampling the surrounding pixels in the image, we can calculate the approximate direction of the normal.
+This is accomplished by using image processing technique called the [Sobel operator](https://en.wikipedia.org/wiki/Sobel_operator). So by sampling the surrounding pixels in the image, we can calculate the approximate direction of the normal.
 
 This is the result
 
