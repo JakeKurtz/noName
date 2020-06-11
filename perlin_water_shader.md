@@ -1,9 +1,9 @@
 Continuation of my exploration of perlin noise.
 
 So after creating the bodies of water, I needed a way to give them "life". After some googling, I came across this [twitter post](https://twitter.com/TheRujiK/status/1208035937671884800)
-and thought it looked badass. So for the most part, that's what I was using for reference.
+and thought it looked pretty badass. So for the most part, that's what I was using for a reference.
 
-First things first was creating a way to calculate noise. I'm a lazy, naturaly, so instead of reinventing the wheel 
+First things first was creating a way to calculate simplex noise. I'm lazy naturaly, so instead of reinventing the wheel 
 I found this [awesome resource](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83) for noise functions.
 
 This was the noise code that was used to generate the follwing image.
@@ -57,9 +57,18 @@ float OctavePerlin(vec2 v, float persistence) {
     return total/maxValue;
 }
 ```
-Now it's time to start messing around and trying to get this to look like water!
+And here are the results, which look as expected
 
+<p align="center">
+  <img width="500" height="500" src="">
+</p>
+
+Now it's time to start messing around and trying to get this to look like water!
 I first started by reducing the number of octaves to 1, which gives it a more "blobby" look.
+
+<p align="center">
+  <img width="500" height="500" src="">
+</p>
 
 To give the illusion of movement, we need this bad boy to start scrolling, which is quite simple.
 
@@ -70,9 +79,18 @@ vec2 vel = vec2(-1.,0.0) * time;
 
 color = vec3(OctavePerlin(pos + vel, 0.5));
 ```
+
+<p align="center">
+  <img width="500" height="500" src="">
+</p>
+
 I then stretch the texture using a scale matrix.
 
-Using two scrolling textures!
+<p align="center">
+  <img width="500" height="500" src="">
+</p>
+
+It reall starts to come to life when using two scrolling textures.
 
 ```cpp
 float time = u_time;
@@ -84,15 +102,24 @@ vec2 vel2 = vec2(1.0,0.0)*time;
 color = vec3(OctavePerlin(pos + vel1, 0.5));
 color += vec3(OctavePerlin(pos + vel2, 0.5));
 ```
+<p align="center">
+  <img width="500" height="500" src="">
+</p>
 
-So the movement and "shape" looks really good to me. Only problem is that this doesn't look like water obviously.
-The idea is that this black and white scrolling texture is a height map, so all we need to do is convert this height map into a normal texture.
-This is accomplished by using image processing algorithm called the (Sobel operator)[https://en.wikipedia.org/wiki/Sobel_operator]. So by sampling the surrounding pixels
-in the image, we can calculate the approximate direction of the normal.
+I really like the look and movement at this point. The only problem is that this doesn't look like water.
+The idea is that this black and white scrolling texture is a height map, so all we need to do is find a way to convert a height map into a normal map.
+This is accomplished by using image processing technique called the (Sobel operator)[https://en.wikipedia.org/wiki/Sobel_operator]. So by sampling the surrounding pixels in the image, we can calculate the approximate direction of the normal.
 
 This is the result
 
+<p align="center">
+  <img width="500" height="500" src="">
+</p>
 
-The final product with a simple phong shader
+and the final product with a simple phong shader
 
-This will really come to life with reflections which is the next thing I'm going to tackle.
+<p align="center">
+  <img width="500" height="500" src="">
+</p>
+
+I'm pretty happy with these results. This will really come to life with reflections (SSR) which is the next thing I'm going to tackle.
