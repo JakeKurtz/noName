@@ -60,14 +60,14 @@ float OctavePerlin(vec2 v, float persistence) {
 And here are the results, which look as expected
 
 <p align="center">
-  <img width="500" height="500" src="">
+  <img width="500" height="500" src="images/noise1.png">
 </p>
 
 Now it's time to start messing around and trying to get this to look like water!
 I first started by reducing the number of octaves to 1, which gives it a more "blobby" look.
 
 <p align="center">
-  <img width="500" height="500" src="">
+  <img width="500" height="500" src="images/noise2.png">
 </p>
 
 To give the illusion of movement, we need this bad boy to start scrolling, which is quite simple.
@@ -81,13 +81,13 @@ color = vec3(OctavePerlin(pos + vel, 0.5));
 ```
 
 <p align="center">
-  <img width="500" height="500" src="">
+  <img width="500" height="500" src="images/water1.gif">
 </p>
 
 I then stretch the texture using a scale matrix.
 
 <p align="center">
-  <img width="500" height="500" src="">
+  <img width="500" height="500" src="images/water2.gif">
 </p>
 
 It reall starts to come to life when using two scrolling textures.
@@ -103,7 +103,7 @@ color = vec3(OctavePerlin(pos + vel1, 0.5));
 color += vec3(OctavePerlin(pos + vel2, 0.5));
 ```
 <p align="center">
-  <img width="500" height="500" src="">
+  <img width="500" height="500" src="images/water3.gif">
 </p>
 
 I really like the look and movement at this point. The only problem is that this doesn't look like water.
@@ -113,13 +113,13 @@ This is accomplished by using image processing technique called the (Sobel opera
 This is the result
 
 <p align="center">
-  <img width="500" height="500" src="">
+  <img width="500" height="500" src="images/water4.gif">
 </p>
 
 and the final product with a simple phong shader
 
 <p align="center">
-  <img width="500" height="500" src="">
+  <img width="500" height="500" src="images/water5.gif">
 </p>
 
 I'm pretty happy with these results. This will really come to life with reflections (SSR) which is the next thing I'm going to tackle.
