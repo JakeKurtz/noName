@@ -1,17 +1,16 @@
 
 p {
     color: dimgray;
-    padding: 10px;
-    margin-top: -10px;
-    margin-bottom: -20px;
-    margin-left: -10px;
-    margin-right: -10px;
+    padding: .5em 0;
+    margin: .5em 0;
     font-size: 20px;
     max-width: 60em;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
-    border-bottom-left-radius: 5px;
+    border-radius: 5px;
+}
+
+.date {
+    color: #7f7f7f;
+    margin-top: -6px
 }
 
 body.sans-serif, body.sans-serif .remove-button {
@@ -20,7 +19,7 @@ body.sans-serif, body.sans-serif .remove-button {
 
 .container {
     margin: 0 auto;
-    font-size: 20px;
+    font-size: 1em;
     max-width: 60em;
     line-height: 1.6em;
 }
@@ -28,8 +27,8 @@ body.sans-serif, body.sans-serif .remove-button {
 /* Navbar container */
 .navbar {
     overflow: hidden;
-   // background-color: #333;
     font-family: Arial;
+    align-self: center;
 }
 
 /* Links inside the navbar */
@@ -38,7 +37,7 @@ body.sans-serif, body.sans-serif .remove-button {
     font-size: 16px;
     color: black;
     text-align: center;
-    padding: 14px 16px;
+    padding: 14px 10px;
     text-decoration: none;
 }
 
@@ -46,6 +45,7 @@ body.sans-serif, body.sans-serif .remove-button {
 .subnav {
     float: left;
     overflow: hidden;
+    padding: 14px 10px;
 }
 
 /* Dropdown button */
@@ -53,8 +53,6 @@ body.sans-serif, body.sans-serif .remove-button {
     font-size: 16px;
     border: none;
     outline: none;
-    //color: white;
-    padding: 21px 16px;
     background-color: inherit;
     font-family: inherit; /* Important for vertical align on mobile phones */
     margin: 0; /* Important for vertical align on mobile phones */
@@ -87,11 +85,42 @@ body.sans-serif, body.sans-serif .remove-button {
 }
 
 /* Add a grey background color to dropdown links on hover */
-    .subnav_content a:hover {
-        //background-color: #ddd;
-    }
+.subnav_content a:hover {
+    //background-color: #ddd;
+}
 
 /* Show the dropdown menu on hover */
 .subnav:hover .subnav_content {
     display: block;
-} 
+}
+
+.gallery {
+    column-count: 3;
+    --columnWidth: 2;
+}
+
+.galleryImage {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.demoImage {
+    margin-top: .5em;
+    margin-bottom: .5em;
+    margin-left: auto;
+    margin-right: auto;
+    padding: .5em 0;
+    display: block;
+}
+
+@media(max-width: 800px) {
+    .gallery{
+        column-count:2;
+    }
+}
+
+@media(max-width: 600px) {
+    .gallery{
+        column-count:1;
+    }
+}
