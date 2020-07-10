@@ -9,7 +9,8 @@
 </head>
 <body>
     <div class="container">
-
+        <h1 align="center">A Weblog</h1>
+        <hr>
         <header>
             <div class="navbar">
                 <a href="index.html">HOME</a>
@@ -25,11 +26,7 @@
                 <a href="blog.html">WEBLOG</a>
             </div>
         </header>
-
-        <h1>The Weblog with No Name</h1>
-        <hr>
         <div class="article">
-            <br>
             <h1>A continuation of my exploration of noise.</h1>
             <h4 class="date">June 11, 2020</h4>
             <hr>
@@ -40,10 +37,8 @@
                 First things first was creating a way to calculate simplex noise. I'm lazy naturally, so instead of reinventing the wheel
                 I found this <a href="https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83">awesome resource</a> for noise functions.
             </p>
-            <p>
-                This was the noise code that was used to generate the follwing image.
-                <br><br>
-                <pre><code class="language-clike">vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+            <p>This was the noise code that was used to generate the follwing image.</p>
+            <pre><code class="language-clike">vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
 
 float snoise(vec2 v){
     const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
@@ -89,42 +84,27 @@ float OctavePerlin(vec2 v, float persistence) {
     }
     return total/maxValue;
 }</code>
-</pre>
-            </p>
-            <p>
-                And here are the results, which look as expected
-                <br><br>
-                <img width="500" height="500" src="images/noise1.PNG">
-            </p>
+            </pre>
+            <p>And here are the results, which look as expected</p>
+            <img class="demoImage" width="500" height="500" src="images/noise1.PNG">
             <p>
                 Now it's time to start messing around and trying to get this to look like water!
                 I first started by reducing the number of octaves to 1, which gives it a more "blobby" look.
-                <br><br>
-                <img width="500" height="500" src="images/noise2.png">
             </p>
-            <p>
-                To give the illusion of movement, we need this bad boy to start scrolling, which is quite simple.
-                <br><br>
-                <pre><code class="language-clike">float time = u_time;
+            <img class="demoImage" width="500" height="500" src="images/noise2.png">
+            <p>To give the illusion of movement, we need this bad boy to start scrolling, which is quite simple.</p>
+            <pre><code class="language-clike">float time = u_time;
 vec3 color = vec3(0.0);
 vec2 vel = vec2(-1.,0.0) * time;
 
 color = vec3(OctavePerlin(pos + vel, 0.5));</code>
-</pre>
-                <br><br>
+            </pre>
+            <img class="demoImage" width="500" height="500" src="images/water1.gif">
+            <p>I then stretch the texture using a scale matrix.</p>
+            <img class="demoImage" width="500" height="500" src="images/water2.gif">
+            <p>It reall starts to come to life when using two scrolling textures.</p>
 
-                <img width="500" height="500" src="images/water1.gif">
-
-            </p>
-            <p>
-                I then stretch the texture using a scale matrix.
-                <br><br>
-                <img width="500" height="500" src="images/water2.gif">
-            </p>
-            <p>
-                It reall starts to come to life when using two scrolling textures.
-                <br><br>
-<pre><code class="language-clike">float time = u_time;
+            <pre><code class="language-clike">float time = u_time;
 vec3 color = vec3(0.0);
 
 vec2 vel1 = vec2(-1.,0.0)*time;
@@ -132,48 +112,38 @@ vec2 vel2 = vec2(1.0,0.0)*time;
 
 color = vec3(OctavePerlin(pos + vel1, 0.5));
 color += vec3(OctavePerlin(pos + vel2, 0.5));</code>
-</pre>
-                <br><br>
-
-                <img width="500" height="500" src="images/water3.gif">
-
-            </p>
+            </pre>
+            <img class="demoImage" width="500" height="500" src="images/water3.gif">
             <p>
                 I really like the look and movement at this point. The only problem is that this doesn't look like water.
                 The idea is that this black and white scrolling texture is a height map, so all we need to do is find a way to convert a height map into a normal map.
                 This is accomplished by using image processing technique called the <a href="https://en.wikipedia.org/wiki/Sobel_operator">Sobel operator</a>. So by sampling the surrounding pixels in the image, we can calculate the approximate direction of the normal.
-                <br><br>
+                <br>
                 This is the result
-                <br><br>
-                <img width="500" height="500" src="images/water4.gif">
+                <br>
             </p>
-            <p>
-                and the final product with a simple phong shader
-                <br><br>
-                <img width="500" height="500" src="images/water5.gif">
-                <br><br>
-                I'm pretty happy with these results. This will really come to life with reflections (SSR) which is the next thing I'm going to tackle.
-            </p>
+            <img class="demoImage" width="500" height="500" src="images/water4.gif">
+            <p>and the final product with a simple phong shader</p>
+            <img class="demoImage" width="500" height="500" src="images/water5.gif">
+            <p>I'm pretty happy with these results. This will really come to life with reflections (SSR) which is the next thing I'm going to tackle.</p>
         </div>
+
         <div class="article">
-            <br>
             <h1>Noise and Terrain Generation</h1>
             <h4 class="date">June 04, 2020</h4>
             <hr>
             <p>
                 I've started to work on my game project once again and wanted to start creating interesting and natural enviroments.
                 In the past I've spent a ludicris amount of time mundanly placing objects around a map. Not only is this boring, but it's painful. So this time around I decided to create procedural maps with automatic foliage placement by using a combination of possian disk distribution and perlin noise.
-                <br><br>
+                <br>
                 I was inspired by this <a href="https://www.youtube.com/watch?v=NfizT369g60">video</a> on procedural environments for FarCry 5.
-                <br><br>
+                <br>
                 This post mainly deals with generating the main terrain height map and isolating the lowest (or darkest) regions into
                 a wavefront obj file.
             </p>
 
-            <p>
-                I started by generating a simple image of simplex noise.
-                <br><br>
-                <pre><code class="language-python">import noise
+            <p>I started by generating a simple image of simplex noise.</p>
+            <pre><code class="language-python">import noise
 def genTerrain(size, scale):
     dimensions = (size, size)
     octaves = 5
@@ -198,15 +168,9 @@ def genTerrain(size, scale):
 
 mapTerrain = genTerrain(1024, 500)</code>
 </pre>
-                <br><br>
-
-                <img width="500" height="500" src="https://i.imgur.com/zOPyT3f.png">
-
-            </p>
-            <p>
-                Next, I simplified the image by limiting the number of levels used. Here I'm using 8 levels of grey.
-                <br><br>
-                <pre><code class="language-python">def colorNoiseMap(noiseMap, numberOfColors):
+            <img class="demoImage" width="500" height="500" src="https://i.imgur.com/zOPyT3f.png">
+            <p>Next, I simplified the image by limiting the number of levels used. Here I'm using 8 levels of grey.</p>
+            <pre><code class="language-python">def colorNoiseMap(noiseMap, numberOfColors):
     noiseMapColored = np.zeros(noiseMap.shape+(3,), dtype=np.uint8)
     colorDict = getColorDict(numberOfColors)
 
@@ -218,24 +182,19 @@ mapTerrain = genTerrain(1024, 500)</code>
             noiseMapColored[i][j] = colorDict.get(bucket)
 
     return noiseMapColored</code>
-</pre>
-                <br><br>
-
-                <img width="500" height="500" src="https://i.imgur.com/XbH1KG2.png">
-
-            </p>
+            </pre>
+            <img class="demoImage" width="500" height="500" src="https://i.imgur.com/XbH1KG2.png">
             <p>
                 I wanted the darker regions in the image to be the bodies of water and to have the lighter regions
                 populated with trees, grass, and other foliage.
                 Using cv2, I found the contours of each body of water and store that as a list of points.
-                <br><br>
-                <img width="500" height="500" src="https://i.imgur.com/m2nMyn3.png">
             </p>
+            <img class="demoImage" width="500" height="500" src="https://i.imgur.com/m2nMyn3.png">
             <p>
                 Each of these contours are then triangulated (thanks to <a href="https://gis.stackexchange.com/questions/316697/delaunay-triangulation-algorithm-in-shapely-producing-erratic-result">nickves</a>)
                 and stored into a wavefront obj file.
-                <br><br>
-                <pre><code class="language-python">def createWavefrontOBJ(lakes):
+            </p>
+            <pre><code class="language-python">def createWavefrontOBJ(lakes):
     vertices = []
     polygons = []
 
@@ -269,16 +228,12 @@ mapTerrain = genTerrain(1024, 500)</code>
         f.write("f "+str(p[0])+"//1 "+str(p[1])+"//1 "+str(p[2])+"//1\n")
 
     f.close()</code>
-</pre>
-                <br><br>
-
-                <img width="500" height="500" src="https://i.imgur.com/lRkRei3.png">
-
-            </p>
+            </pre>
+            <img class="demoImage" width="500" height="500" src="https://i.imgur.com/lRkRei3.png">
             <p>
                 The code is not the nicest, but I did have a lot of fun writing this up. The only
                 thing that was a pain was getting all the libraries installed correctly.
-                <br><br>
+                <br>
                 The next thing to do is create a shader for the water and create a way to place objects using poisson disk distribution, which shouldn't be difficult.
             </p>
         </div>
