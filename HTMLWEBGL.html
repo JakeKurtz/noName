@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>#my_Canvas{border: 1px solid red}</style>
+</head>
+<body>
+    <canvas id="my_Canvas" width="1200" height="1200"></canvas>
+
+    <script id="vertex-shader" type="not-javascript">
+
+        attribute vec3 position;
+        attribute vec3 color;
+        attribute mat4 offset;
+
+        uniform mat4 mat_p;
+        uniform mat4 mat_v;
+        uniform mat4 mat_m;
+        varying vec3 vColor;
+
+        void main(void) {
+            gl_Position = mat_p * mat_v * mat_m * offset * vec4(position, 1.);
+            vColor = color;
+        }
+    </script>
+
+    <script id="fragment-shader" type="not-javascript">
+        precision mediump float;
+        varying vec3 vColor;
+
+        void main(void) {
+            gl_FragColor = vec4(vColor, 1.);
+        }
+    </script>
+
+    <script src="./quad.js"></script>
+
+</body>
+</html>
