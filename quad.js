@@ -45,7 +45,7 @@ function sierpinski(scale, offset, depth) {
     }
 }
 
-var scale = 0.7;
+var scale = 1;
 var slider = document.getElementById("slider");
 var depth = Number(slider.value);
 
@@ -189,7 +189,12 @@ function get_projection(angle, a, zMin, zMax) {
     ];
 }
 
-var proj_matrix = get_projection(60, canvas.width / canvas.height, 1, 100);
+var zoom = 45;
+var eX = 0;
+var eY = 0;
+var eZ = -12;
+
+var proj_matrix = get_projection(zoom, canvas.width / canvas.height, 1, 100);
 var mo_matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 var view_matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
@@ -205,6 +210,7 @@ var dX = 0, dY = 0;
 var mouseDown = function (e) {
     drag = true;
     old_x = e.pageX, old_y = e.pageY;
+
     e.preventDefault();
     return false;
 };
@@ -214,32 +220,51 @@ var mouseUp = function (e) {
 };
 
 var mouseMove = function (e) {
+
+    var pan = document.getElementById("radio_pan").checked
+    var rot = document.getElementById("radio_rot").checked
+
     if (!drag) return false;
     dX = (e.pageX - old_x) * 2 * Math.PI / canvas.width,
-        dY = (e.pageY - old_y) * 2 * Math.PI / canvas.height;
-    THETA += dX;
-    PHI += dY;
+    dY = (e.pageY - old_y) * 2 * Math.PI / canvas.height;
     old_x = e.pageX, old_y = e.pageY;
+
+    if (rot) {
+        THETA += dX;
+        PHI += dY;
+    } 
+    if (pan) {
+        eY -= dY;
+        eX += dX;
+    }
+
     e.preventDefault();
 };
 
 var mouseScroll = function (e) {
-    console.log(e.deltaY);
-}
-
-var scrollDown = function (e) {
-    zoom -= 1;
-}
-
-var scrollUp = function (e) {
-    zoom += 1;
+    //var direction = (e.detail < 0 || e.wheelDelta > 0) ? 1 : -1;
+    var direction = (e.deltaY < 0) ? 1 : -1;
+    if (direction == -1) { eZ -= 0.1; }
+    if (direction == 1) { eZ += 0.1; }
+    e.preventDefault();
 }
 
 canvas.addEventListener("mousedown", mouseDown, false);
 canvas.addEventListener("mouseup", mouseUp, false);
 canvas.addEventListener("mouseout", mouseUp, false);
 canvas.addEventListener("mousemove", mouseMove, false);
-canvas.addEventListener("wheel", mouseScroll, false);
+
+//canvas.addEventListener('DOMMouseScroll', mouseScroll, false); // for Firefox
+//canvas.addEventListener('mousewheel', mouseScroll, false); // for everyone else
+
+//var wheelOpt = supportsPassive ? { passive: false } : false;
+//var wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel';
+
+canvas.addEventListener('DOMMouseScroll', mouseScroll, false); // older FF
+canvas.addEventListener('wheel', mouseScroll, false); // modern desktop
+//window.addEventListener('mousewheel', mouseScroll, false); // for everyone else
+//window.addEventListener('touchmove', mouseScroll, wheelOpt); // mobile
+//window.addEventListener('keydown', preventDefaultForScrollKeys, false);
 
 /*=========================rotation================*/
 
@@ -280,7 +305,7 @@ var time_old = 0;
 var animate = function (time) {
     var dt = time - time_old;
 
-    if (!drag) {
+    if (!drag && document.getElementById("radio_rot").checked) {
         dX *= AMORTIZATION, dY *= AMORTIZATION;
         THETA += dX, PHI += dY;
     }
@@ -319,5 +344,12 @@ var animate = function (time) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
     gl.drawElementsInstanced(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0, instanceCount);
     window.requestAnimationFrame(animate);
+
+    proj_matrix = get_projection(30, canvas.width / canvas.height, 1, 100);
+    view_matrix = [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        eX, eY, eZ, 1];
 }
 animate(0);

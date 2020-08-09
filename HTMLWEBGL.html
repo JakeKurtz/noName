@@ -4,10 +4,17 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
-    <style>#my_Canvas{border: 1px solid red}</style>
+    <style>
+        #my_Canvas {
+            border: 1px solid red
+        }
+
+        .slidecontainer {
+        }
+    </style>
 </head>
 <body>
-    <canvas id="my_Canvas" width="1200" height="1200"></canvas>
+    <canvas id="my_Canvas" width="600" height="600"></canvas>
 
     <script id="vertex-shader" type="not-javascript">
 
@@ -43,6 +50,13 @@
         <output id="output"></output>
     </div>
 
+    <div class="toggles" input="radio">
+        <input type="radio" id="radio_pan" name="control" checked="checked">
+        <label for="vehicle1"> Pan</label><br>
+        <input type="radio" id="radio_rot" name="control">
+        <label for="rotate"> Rotate</label><br>
+    </div>
+
     <script>
         var slider = document.getElementById("slider");
         var output = document.getElementById("output");
@@ -50,7 +64,7 @@
 
         slider.oninput = function () {
             output.innerHTML = this.value;
-        } 
+        }
     </script>
 
 </body>
