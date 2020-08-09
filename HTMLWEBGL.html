@@ -34,8 +34,24 @@
             gl_FragColor = vec4(vColor, 1.);
         }
     </script>
+    <script src="./quad.js" type="module"></script>
+    <script src="./gl-matrix/src/index.js" type="module"></script>
 
-    <script src="./quad.js"></script>
+    <div class="slidecontainer">
+        <p>Levels:</p>
+        <input type="range" min="0" max="4" value="1" id="slider">
+        <output id="output"></output>
+    </div>
+
+    <script>
+        var slider = document.getElementById("slider");
+        var output = document.getElementById("output");
+        output.innerHTML = slider.value;
+
+        slider.oninput = function () {
+            output.innerHTML = this.value;
+        } 
+    </script>
 
 </body>
 </html>

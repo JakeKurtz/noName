@@ -1,3 +1,7 @@
+import { glMatrix, mat4 } from './gl-matrix/src/index.js'
+
+glMatrix.setMatrixArrayType(Array);
+
 function sierpinski(scale, offset, depth) {
     var offsets = [];
 
@@ -10,11 +14,15 @@ function sierpinski(scale, offset, depth) {
                     if ((k - 1) % 3 == 0 && (j - 1) % 3 == 0) { continue }
                     if ((k - 1) % 3 == 0 && (i - 1) % 3 == 0) { continue }
 
-                    offsets.push(
-                        scale, 0, 0, 0,
-                        0, scale, 0, 0,
-                        0, 0, scale, 0,
-                        i*2*scale + offset[0], j*2*scale + offset[1], k*2*scale + offset[2], 1);
+                    var mat = mat4.create();
+                    mat4.translate(mat, mat, [
+                        i * 2 * scale + offset[0],
+                        j * 2 * scale + offset[1],
+                        k * 2 * scale + offset[2]
+                    ]);
+                    mat4.scale(mat, mat, [scale, scale, scale]);
+
+                    offsets = offsets.concat(mat);
                 }
             }
         }
@@ -29,7 +37,7 @@ function sierpinski(scale, offset, depth) {
                     if ((k - 1) % 3 == 0 && (j - 1) % 3 == 0) { continue }
                     if ((k - 1) % 3 == 0 && (i - 1) % 3 == 0) { continue }
 
-                    offsets = offsets.concat(sierpinski(scale / 3.0, [i*2*scale + offset[0], j*2*scale + offset[1], k*2*scale + offset[2]], depth - 1))
+                    offsets = offsets.concat(sierpinski(scale / 3.0, [i * 2 * scale + offset[0], j * 2 * scale + offset[1], k * 2 * scale + offset[2]], depth - 1))
                 }
             }
         }
@@ -37,9 +45,18 @@ function sierpinski(scale, offset, depth) {
     }
 }
 
+var scale = 0.7;
+var slider = document.getElementById("slider");
+var depth = Number(slider.value);
+
+var center = (Math.floor(Math.pow(3, depth + 1) / 2) * 2 / Math.pow(3, depth)) * scale;
+
+var offsets = sierpinski(scale, [-center, -center, -center], depth);
+var instanceCount = offsets.length / 16;
+
 /*============= Creating a canvas ======================*/
 var canvas = document.getElementById('my_Canvas');
-gl = canvas.getContext('webgl2');
+var gl = canvas.getContext('webgl2');
 
 /*========== Defining and storing the geometry ==========*/
 
@@ -51,7 +68,6 @@ var cubeVertices = [
     -1, -1, -1, -1, -1, 1, 1, -1, 1, 1, -1, -1,
     -1, 1, -1, -1, 1, 1, 1, 1, 1, 1, 1, -1,
 ];
-
 var colors = [
     5, 3, 7, 5, 3, 7, 5, 3, 7, 5, 3, 7,
     1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3,
@@ -60,20 +76,11 @@ var colors = [
     1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0,
     0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0
 ];
-
 var indices = [
     0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7,
     8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15,
     16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23
 ];
-
-var offsets = sierpinski(0.5, [0, 0, 0], 3);
-var instanceCount = offsets.length / 16;
-
-var Sx = 1, Sy = 1, Sz = 1;
-var depth = 2;
-
-console.log(offsets);
 
 // Create and store data into vertex buffer
 var vertex_buffer = gl.createBuffer();
@@ -182,7 +189,7 @@ function get_projection(angle, a, zMin, zMax) {
     ];
 }
 
-var proj_matrix = get_projection(40, canvas.width / canvas.height, 1, 100);
+var proj_matrix = get_projection(60, canvas.width / canvas.height, 1, 100);
 var mo_matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 var view_matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
@@ -216,10 +223,23 @@ var mouseMove = function (e) {
     e.preventDefault();
 };
 
+var mouseScroll = function (e) {
+    console.log(e.deltaY);
+}
+
+var scrollDown = function (e) {
+    zoom -= 1;
+}
+
+var scrollUp = function (e) {
+    zoom += 1;
+}
+
 canvas.addEventListener("mousedown", mouseDown, false);
 canvas.addEventListener("mouseup", mouseUp, false);
 canvas.addEventListener("mouseout", mouseUp, false);
 canvas.addEventListener("mousemove", mouseMove, false);
+canvas.addEventListener("wheel", mouseScroll, false);
 
 /*=========================rotation================*/
 
@@ -267,13 +287,13 @@ var animate = function (time) {
 
     //set model matrix to I4
 
-    mo_matrix[0] = Sx, mo_matrix[1] = 0, mo_matrix[2] = 0,
+    mo_matrix[0] = 1, mo_matrix[1] = 0, mo_matrix[2] = 0,
         mo_matrix[3] = 0,
 
-        mo_matrix[4] = 0, mo_matrix[5] = Sy, mo_matrix[6] = 0,
+        mo_matrix[4] = 0, mo_matrix[5] = 1, mo_matrix[6] = 0,
         mo_matrix[7] = 0,
 
-        mo_matrix[8] = 0, mo_matrix[9] = 0, mo_matrix[10] = Sz,
+        mo_matrix[8] = 0, mo_matrix[9] = 0, mo_matrix[10] = 1,
         mo_matrix[11] = 0,
 
         mo_matrix[12] = 0, mo_matrix[13] = 0, mo_matrix[14] = 0,
@@ -287,7 +307,7 @@ var animate = function (time) {
 
     // gl.depthFunc(gl.LEQUAL);
 
-    gl.clearColor(0.5, 0.5, 0.5, 0.9);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
     gl.viewport(0.0, 0.0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
