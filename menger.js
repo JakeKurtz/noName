@@ -364,7 +364,7 @@ var normals = [
 
 var eX = 0;
 var eY = 0;
-var eZ = 10;
+var eZ = 25;
 
 var cam = new camera([eX, eY, eZ]);
 var menger = new d3_obj_instanced(cubeVertices, normals, colors, indices, []);
