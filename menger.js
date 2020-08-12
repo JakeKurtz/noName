@@ -364,7 +364,7 @@ var normals = [
 
 var eX = 0;
 var eY = 0;
-var eZ = 25;
+var eZ = 15;
 
 var cam = new camera([eX, eY, eZ]);
 var menger = new d3_obj_instanced(cubeVertices, normals, colors, indices, []);
@@ -426,6 +426,10 @@ var mouseScroll = function (e) {
     if (direction == 1) { eZ -= 0.1; }
     e.preventDefault();
 }
+
+canvas.addEventListener("touchstart", mouseDown, false);
+canvas.addEventListener("touchend", mouseUp, false);
+canvas.addEventListener("touchmove", mouseMove, false);
 
 canvas.addEventListener("mousedown", mouseDown, false);
 canvas.addEventListener("mouseup", mouseUp, false);
