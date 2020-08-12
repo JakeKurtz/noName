@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <title>noName... </title>
@@ -22,7 +22,6 @@
     }
 
     .objViewer #my_Canvas {
-        display: inline-block;
         width: 80vw;
         height: 80vh;
     }
@@ -59,7 +58,7 @@
                 <a href="blog.html">WEBLOG</a>
             </div>
         </header>
-
+    </div>
             <h1 align="center">The Menger Sponge</h1>
                 <div class="objViewer">
                     <canvas class="canvas" id="my_Canvas"></canvas>
@@ -72,9 +71,9 @@
                         </div>
 
                         <div class="control-item" input="radio">
-                            <input type="radio" id="radio_pan" name="control" checked="checked">
+                            <input type="radio" id="radio_pan" name="control">
                             <label for="vehicle1"> Pan </label><br>
-                            <input type="radio" id="radio_rot" name="control">
+                            <input type="radio" id="radio_rot" name="control" checked="checked">
                             <label for="rotate"> Rotate</label><br>
                         </div>
                     </div>
@@ -85,24 +84,18 @@
                     attribute vec3 position;
                     attribute mat4 offset;
 
-                    //uniform mat4 lightSpaceMatrix;
                     uniform mat4 proj_matrix;
                     uniform mat4 view_matrix;
                     uniform mat4 model_matrix;
 
                     void main() {
-                        mat4 mo = model_matrix * offset;
-                        mat4 mvp = proj_matrix * view_matrix * mo;
-
+                        mat4 mvp = proj_matrix * view_matrix * model_matrix * offset;
                         gl_Position = mvp * vec4(position, 1.0);
-                        //gl_Position = lightSpaceMatrix * model_matrix * offset * vec4(position, 1.0);
                     }
                 </script>
 
                 <script id="fs_shadowmap_depth" type="not-javascript">
-                    void main() {
-                        gl_FragColor = vec4(vec3(gl_FragCoord.z), 1.0);
-                    }
+                    void main() {}
                 </script>
 
                 <script id="vertex-shader" type="not-javascript">
@@ -233,6 +226,5 @@
                         output.innerHTML = this.value;
                     }
                 </script>
-            </div>
         </body>
     </html>
