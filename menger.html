@@ -22,8 +22,18 @@
         display: inline-block;
     }
 
-    .objViewer p {
+    .controls {
+        position: relative;
     }
+
+        .controls .howto {
+            position: absolute;
+            padding-left: 200px;
+            padding-top: 7px;
+            margin-right: 10px;
+            text-align: justify;
+            text-size-adjust: auto;
+        }
 
     .objViewer #my_Canvas {
         width: 80vw;
@@ -82,6 +92,11 @@
                             <input type="radio" id="radio_rot" name="control" checked="checked">
                             <label for="rotate"> Rotate</label><br>
                         </div>
+
+                        <p class="howto">
+                            Click and move mouse to rotate/pan view. Scroll to zoom in and out.
+                        </p>
+
                     </div>
 
                 </div>
