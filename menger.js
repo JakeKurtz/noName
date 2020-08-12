@@ -389,6 +389,62 @@ var drag = false;
 var old_x, old_y;
 var dX = 0, dY = 0;
 
+var evCache = new Array();
+var prevDiff = -1;
+
+canvas.onpointerdown = pointerdown_handler;
+canvas.onpointermove = pointermove_handler;
+canvas.onpointerup = pointerup_handler;
+canvas.onpointercancel = pointerup_handler;
+canvas.onpointerout = pointerup_handler;
+canvas.onpointerleave = pointerup_handler;
+
+function pointermove_handler(e) {
+    // Find this event in the cache and update its record with this event
+    for (var i = 0; i < evCache.length; i++) {
+        if (e.pointerId == evCache[i].pointerId) {
+            evCache[i] = e;
+            break;
+        }
+    }
+
+    // If two pointers are down, check for pinch gestures
+    if (evCache.length == 2) {
+        // Calculate the distance between the two pointers
+        var curDiff = Math.abs(evCache[0].clientX - evCache[1].clientX);
+
+        if (prevDiff > 0) {
+            if (curDiff > prevDiff) {
+                eZ -= 0.1;
+            }
+            if (curDiff < prevDiff) {
+                eZ += 0.1;
+            }
+        }
+        // Cache the distance for the next move event 
+        prevDiff = curDiff;
+    }
+
+}
+function pointerdown_handler(ev) {
+    evCache.push(ev);
+}
+function pointerup_handler(ev) {
+    console.log(ev.type, ev);
+    remove_event(ev);
+    // If the number of pointers down is less than two then reset diff tracker
+    if (evCache.length < 2) prevDiff = -1;
+}
+function remove_event(ev) {
+    // Remove this event from the target's cache
+    for (var i = 0; i < evCache.length; i++) {
+        if (evCache[i].pointerId == ev.pointerId) {
+            evCache.splice(i, 1);
+            break;
+        }
+    }
+}
+
 var mouseDown = function (e) {
     drag = true;
     old_x = e.pageX, old_y = e.pageY;
@@ -427,9 +483,42 @@ var mouseScroll = function (e) {
     e.preventDefault();
 }
 
-canvas.addEventListener("touchstart", mouseDown, false);
-canvas.addEventListener("touchend", mouseUp, false);
-canvas.addEventListener("touchmove", mouseMove, false);
+var fingerDown = function (e) {
+
+    drag = true;
+    old_x = e.touches[0].pageX, old_y = e.touches[0].pageY;
+
+    e.preventDefault();
+    return false;
+}
+var fingerUp = function (e) {
+    drag = false;
+}
+var fingerMove = function (e) {
+    var pan = document.getElementById("radio_pan").checked
+    var rot = document.getElementById("radio_rot").checked
+
+    if (!drag) return false;
+    dX = (e.touches[0].pageX - old_x) * 2 * Math.PI / canvas.width;
+    dY = (e.touches[0].pageY - old_y) * 2 * Math.PI / canvas.height;
+    old_x = e.touches[0].pageX, old_y = e.touches[0].pageY;
+
+    
+    if (rot) {
+        THETA += dX;
+        PHI += dY;
+    }
+    if (pan) {
+        eY += dY * 2;
+        eX -= dX * 2;
+    }
+    
+    e.preventDefault();
+}
+
+canvas.addEventListener("touchstart", fingerDown, false);
+canvas.addEventListener("touchend", fingerUp, false);
+canvas.addEventListener("touchmove", fingerMove, false);
 
 canvas.addEventListener("mousedown", mouseDown, false);
 canvas.addEventListener("mouseup", mouseUp, false);
