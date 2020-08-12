@@ -321,9 +321,23 @@ function createMenger(scale, offset, depth) {
 }
 function updateMenger(menger, depth) {
 
+    var offsets = []
     var scale = 1;
-    var center = (Math.floor(Math.pow(3, depth + 1) / 2) * 2 / Math.pow(3, depth)) * scale;
-    var offsets = createMenger(scale, [-center, -center, -center], depth);
+
+    if (depth == 0) {
+        offsets = [
+            3 * scale, 0, 0, 0,
+            0, 3 * scale, 0, 0,
+            0, 0, 3 * scale, 0,
+            0, 0, 0, 1];
+    } else {
+        var center = (Math.floor(Math.pow(3, depth) / 2) * 2 / Math.pow(3, depth-1)) * scale;
+        offsets = createMenger(scale, [-center, -center, -center], depth-1);
+    }
+
+    //var scale = 1;
+    //var center = (Math.floor(Math.pow(3, depth + 1) / 2) * 2 / Math.pow(3, depth)) * scale;
+    //offsets = createMenger(scale, [-center, -center, -center], depth);
     menger.instanceCount = offsets.length / 16;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, menger.offset_buffer);
@@ -543,6 +557,7 @@ var animate = function (time) {
         dX *= AMORTIZATION, dY *= AMORTIZATION;
         THETA += dX, PHI += dY;
     }
+
     var depth = Number(document.getElementById("slider").value);
     if (depth != depth_old) {
         updateMenger(menger, depth);
