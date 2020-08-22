@@ -36,9 +36,9 @@ function addBoids(nmb_boids, boids) {
     var numberToAdd = nmb_boids - boids.length;
 
     for (var i = 0; i < numberToAdd; i++) {
-        var x = randrange(-1, 1) * 15;
-        var y = randrange(-1, 1) * 15;
-        var z = randrange(-1, 1) * 15;
+        var x = randrange(-1, 1) * 50;
+        var y = randrange(-1, 1) * 50;
+        var z = randrange(-1, 1) * 50;
 
         var a = Math.random();
         var b = Math.random();
