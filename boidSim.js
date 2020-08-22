@@ -175,11 +175,11 @@ function pointermove_handler(e) {
         var curDiff = Math.abs(evCache[0].clientX - evCache[1].clientX);
 
         if (prevDiff > 0) {
-            if (curDiff > prevDiff) {
-                eZ -= 0.1;
+            if (curDiff > prevDiff && zoom > 5) {
+                zoom -= 1;
             }
-            if (curDiff < prevDiff) {
-                eZ += 0.1;
+            if (curDiff < prevDiff && zoom < 150) {
+                zoom += 1;
             }
         }
         // Cache the distance for the next move event 
@@ -222,9 +222,6 @@ var mouseUp = function (e) {
 };
 var mouseMove = function (e) {
 
-    //var pan = document.getElementById("radio_pan").checked
-    //var rot = document.getElementById("radio_rot").checked
-
     if (!drag) return false;
 
     dX = (e.pageX - old_x) * 2 * Math.PI / canvas.width;
@@ -232,21 +229,14 @@ var mouseMove = function (e) {
     old_x = e.pageX;
     old_y = e.pageY;
 
-    if (leftmouse) {
+    yaw -= dX * sensitivity;
+    pitch += dY * sensitivity;
 
-        yaw -= dX * sensitivity;
-        pitch += dY * sensitivity;
+    if (pitch > 89.0) pitch = 89.0;
+    if (pitch < -89.0) pitch = -89.0;
 
-        if (pitch > 89.0) pitch = 89.0;
-        if (pitch < -89.0) pitch = -89.0;
-
-        THETA += dX;
-        PHI += dY;
-    }
-    if (rightmouse) {
-        eY += dY * 2;
-        eX -= dX * 2;
-    }
+    THETA += dX;
+    PHI += dY;
 
     e.preventDefault();
 };
@@ -269,23 +259,20 @@ var fingerUp = function (e) {
     drag = false;
 }
 var fingerMove = function (e) {
-    var pan = document.getElementById("radio_pan").checked
-    var rot = document.getElementById("radio_rot").checked
 
     if (!drag) return false;
     dX = (e.touches[0].pageX - old_x) * 2 * Math.PI / canvas.width;
     dY = (e.touches[0].pageY - old_y) * 2 * Math.PI / canvas.height;
     old_x = e.touches[0].pageX, old_y = e.touches[0].pageY;
 
+    yaw -= dX * sensitivity;
+    pitch += dY * sensitivity;
 
-    if (rot) {
-        THETA += dX;
-        PHI += dY;
-    }
-    if (pan) {
-        eY += dY * 2;
-        eX -= dX * 2;
-    }
+    if (pitch > 89.0) pitch = 89.0;
+    if (pitch < -89.0) pitch = -89.0;
+
+    THETA += dX;
+    PHI += dY;
 
     e.preventDefault();
 }
