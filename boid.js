@@ -125,7 +125,7 @@ class Boid {
                 var sepForce = [];
                 vec3.sub(sepForce, this.pos, n.pos);
                 vec3.normalize(sepForce, sepForce);
-                vec3.scale(sepForce, sepForce, 1.0 / dist); // Division by zero!?
+                vec3.scale(sepForce, sepForce, 1.0 / radius**2); // Division by zero!?
                 vec3.add(avgSepForce, avgSepForce, sepForce);
                 count++;
             }
