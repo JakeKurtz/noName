@@ -244,7 +244,7 @@ class ObjectInstanced3D {
 
 class LightDir {
     constructor(pos, color, luminacity, ambient, diffuse, specular, shadows, toggle) {
-        this.pos = pos || [10, 50, 10];
+        this.pos = pos || [10, 500, 10];
         this.color = color || [1, 1, 1];
         this.luminacity = luminacity || 1;
         this.ambient = ambient || 0.3;
@@ -283,7 +283,7 @@ class LightDir {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         // Light space matrix
-        mat4.ortho(this.proj_matrix, -50, 50, -50, 50, -50, 500);
+        mat4.ortho(this.proj_matrix, -50, 50, -50, 50, -50, 600);
         mat4.lookAt(this.view_matrix, this.pos, [0, 0, 0], [0, 1, 0]);
 
         this.depthShader = compileShader("vs_shadowmap_depth", "fs_shadowmap_depth");

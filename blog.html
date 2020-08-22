@@ -2,37 +2,18 @@
 <html lang="en">
 <head>
     <title>noName... </title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./styles/style.css">
     <link rel="stylesheet" href="prism.css" data-noprefix />
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=no">
     <script src="prism.js"></script>
 </head>
 <body>
+    <script src="./includeHTML.js"></script>
+
     <div class="container">
-        <h1 align="center">A Weblog</h1>
-        <hr>
-        <header>
-            <div class="navbar">
-                <a href="index.html">HOME</a>
-                <div class="subnav">
-                    <button class="subnav_btn">PHOTOGRAPHY</button>
-                    <div class="subnav_content">
-                        <a href="gallery.html">NATURE</a>
-                        <a href="gallery.html">PEOPLE</a>
-                        <a href="gallery.html">ASTROPHOTOGRAPHY</a>
-                        <a href="gallery.html">LANDSCAPE</a>
-                    </div>
-                </div>
-                <a href="blog.html">WEBLOG</a>
-                <div class="subnav">
-                    <button class="subnav_btn">GRAPHIC APPS</button>
-                    <div class="subnav_content">
-                        <a href="menger.html">MENGER SPONGE</a>
-                        <a href="boids.html">BOIDS</a>
-                    </div>
-                </div>
-            </div>
-        </header>
+        <div include-html="navbar.html"></div>
+        <script>includeHTML();</script>
+
         <div class="article">
             <h1>Astrophotography: Trials and Tribulations</h1>
             <h4 class="date">July 13, 2020</h4>
@@ -193,7 +174,6 @@ color += vec3(OctavePerlin(pos + vel2, 0.5));</code>
             <img class="demoImage" width="500" height="500" src="images/water5.gif">
             <p>I'm pretty happy with these results. This will really come to life with reflections (SSR) which is the next thing I'm going to tackle.</p>
         </div>
-
         <div class="article">
             <h1>Noise and Terrain Generation</h1>
             <h4 class="date">June 04, 2020</h4>

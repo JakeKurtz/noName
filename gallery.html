@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <title>noName... </title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./styles/style.css">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=no">
     <script src="spotlight.bundle.js"></script>
     <script src="masonry.pkgd.js"></script>
@@ -10,30 +10,13 @@
 </head>
 <body>
     <div class="container">
-        <h1 align="center">A Weblog</h1>
-        <hr>
-        <header>
-            <div class="navbar">
-                <a href="index.html">HOME</a>
-                <div class="subnav">
-                    <button class="subnav_btn">PHOTOGRAPHY</button>
-                    <div class="subnav_content">
-                        <a href="gallery.html">NATURE</a>
-                        <a href="gallery.html">PEOPLE</a>
-                        <a href="gallery.html">ASTROPHOTOGRAPHY</a>
-                        <a href="gallery.html">LANDSCAPE</a>
-                    </div>
-                </div>
-                <a href="blog.html">WEBLOG</a>
-                                <div class="subnav">
-                    <button class="subnav_btn">GRAPHIC APPS</button>
-                    <div class="subnav_content">
-                        <a href="menger.html">MENGER SPONGE</a>
-                        <a href="boids.html">BOIDS</a>
-                    </div>
-                </div>
-            </div>
-        </header>
+
+        <script src="./includeHTML.js"></script>
+        <div include-html="navbar.html"></div>
+        <script>
+            includeHTML();
+        </script>
+
         <div class="gallery">
             <p class="spotlight-group">
                 <a class="spotlight" href="https://i.imgur.com/awYDJwb.jpg" data-description="">

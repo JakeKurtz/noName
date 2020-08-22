@@ -73,7 +73,7 @@ class Boid {
         this.vel = velocity;
         this.node = null;
 
-        this.lookAheadDist = 40;
+        this.lookAheadDist = 10;
 
         this.norm = [0, 0, 0];
         this.force_avoidance = [0, 0, 0];
@@ -120,8 +120,8 @@ class Boid {
         var count = 0;
         for (n of this.nbhd) {
             if (n.id == this.id) { continue; }
-            var dist = vec3.sqrDist(this.pos, n.pos);
-            if (dist < radius**2) {
+            var dist = vec3.dist(this.pos, n.pos);
+            if (dist < radius) {
                 var sepForce = [];
                 vec3.sub(sepForce, this.pos, n.pos);
                 vec3.normalize(sepForce, sepForce);
@@ -151,8 +151,8 @@ class Boid {
             var count = 0;
             for (n of this.nbhd) {
                 if (n.id == this.id) { continue; }
-                var d = vec3.sqrDist(this.pos, n.pos);
-                if (d < coh_r**2 && d > sep_r**2) {
+                var d = vec3.dist(this.pos, n.pos);
+                if (d < coh_r && d > sep_r) {
                     vec3.add(avgPoint, avgPoint, n.pos);
                     count++;
                 }
@@ -183,8 +183,8 @@ class Boid {
             var n;
             for (n of this.nbhd) {
                 if (n.id == this.id) { continue; }
-                var d = vec3.sqrDist(this.pos, n.pos);
-                if (d < radius**2) {
+                var d = vec3.dist(this.pos, n.pos);
+                if (d < radius) {
                     vec3.add(avgVelocity, avgVelocity, n.vel);
                     count++;
                 }
@@ -216,21 +216,41 @@ class Boid {
             var pointOfIntersection = rayPlaneIntersection(rayPos, rayDir, wall);
             if (pointOfIntersection != null) {
                 // check if you're close enough
-                var distToWall = vec3.sqrDist(this.pos, pointOfIntersection);
-                if (distToWall <= this.lookAheadDist**2) {
+                var distToWall = vec3.dist(this.pos, pointOfIntersection);
+                if (distToWall <= this.lookAheadDist) {
                     // do something to avoid the wall
+
+                    var desired = [];
+
+                    var foo = vec3.dot(wall.normal, this.vel);
+                    var bar = vec3.dot(this.vel, this.vel);
+
+                    vec3.scale(desired, this.vel, foo / bar);
+                    vec3.sub(desired, wall.normal, desired);
+
+                    vec3.normalize(desired, desired);
+                    vec3.scale(desired, desired, maxSpeed);
+
                     var force = [];
-                    vec3.scale(force, wall.normal, 1);
-                    //vec3.normalize(force, force);
-                    vec3.scale(force, force, maxSpeed);
-
-                    vec3.sub(force, force, this.vel);
+                    vec3.sub(force, desired, this.vel);
                     clampForce(force, force, maxForce);
-
                     vec3.add(this.force_net, this.force_net, force);
-                    break;
                 }
             }
+        }
+    }
+
+    forceFeild(maxSpeed, maxForce) {
+        if (vec3.dist([0, 0, 0], this.pos) > 100.0) {
+            var force = []
+            vec3.sub(force, [0, 0, 0], this.pos);
+
+            vec3.normalize(force, force);
+            vec3.scale(force, force, maxSpeed);
+
+            vec3.sub(force, force, this.vel);
+            clampForce(force, force, maxForce);
+            vec3.add(this.force_net, this.force_net, force);
         }
     }
 

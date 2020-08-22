@@ -1,0 +1,186 @@
+
+.article p {
+    color: dimgray;
+    padding: .5em 0;
+    margin: .5em 0;
+    font-size: 20px;
+    max-width: 60em;
+    border-radius: 5px;
+}
+
+.date {
+    color: #7f7f7f;
+    margin-top: -6px
+}
+
+ul {
+    list-style: none; /* Remove default bullets */
+}
+
+    ul li::before {
+        content: "\2022";
+        color: 484848;
+        font-weight: bold;
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+    }
+
+.list {
+    font-family: Helvetica, Arial, sans-serif;
+    color: dimgray;
+    font-size: 17px;
+    max-width: 60em;
+    border-radius: 5px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+body.sans-serif, body.sans-serif .remove-button {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.container {
+    margin: 0 auto;
+    font-size: 1em;
+    max-width: 60em;
+    line-height: 1.6em;
+}
+
+.container_center {
+    text-align: center
+}
+
+/* Navbar container */
+.navbar {
+    overflow: hidden;
+    font-family: Arial;
+    align-self: center;
+}
+
+/* Links inside the navbar */
+.navbar a {
+    float: left;
+    font-size: 16px;
+    color: black;
+    text-align: center;
+    padding: 14px 10px;
+    text-decoration: none;
+}
+
+/* The dropdown container */
+.subnav {
+    float: left;
+    overflow: hidden;
+    padding: 14px 10px;
+}
+
+/* Dropdown button */
+.subnav .subnav_btn {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    background-color: inherit;
+    font-family: inherit; /* Important for vertical align on mobile phones */
+    margin: 0; /* Important for vertical align on mobile phones */
+}
+
+/* Add a red background color to navbar links on hover */
+    .navbar a:hover, .subnav:hover .subnav_btn {
+        //background-color: red;
+        color: dimgray;
+    }
+
+/* Dropdown content (hidden by default) */
+.subnav_content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.subnav_content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+/* Add a grey background color to dropdown links on hover */
+.subnav_content a:hover {
+    /*//background-color: #ddd;*/
+}
+
+/* Show the dropdown menu on hover */
+.subnav:hover .subnav_content {
+    display: block;
+}
+
+.gallery .spotlight-group {
+    position: relative;
+    margin: auto;
+    padding: 45px 0;
+    display: grid;
+    grid-template-rows: repeat(4, 180px);
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    grid-auto-flow: dense;
+}
+
+.gallery .spotlight-group .spotlight .img{
+    position: relative;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    object-fit: cover;
+}
+
+.gallery .spotlight-group .spotlight:first-child {
+    grid-column-start: span 2;
+    grid-row-start: span 2;
+}
+  
+.gallery .spotlight-group .spotlight:nth-child(2n+3) {
+    grid-row-start: span 3;
+}
+
+.gallery .spotlight-group .spotlight:nth-child(4n+5) {
+    grid-column-start: span 2;
+    grid-row-start: span 2;
+}
+
+.gallery .spotlight-group .spotlight:nth-child(6n+7) {
+    grid-row-start: span 1;
+}
+
+.gallery .spotlight-group .spotlight:nth-child(8n+9) {
+    grid-row-start: span 2;
+}
+
+.demoImage {
+    margin-top: .5em;
+    margin-bottom: .5em;
+    margin-left: auto;
+    margin-right: auto;
+    padding: .5em 0;
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+@media(max-width: 800px) {
+    .gallery .spotlight-group {
+        grid-template-columns: auto
+    }
+}
+
+@media(max-width: 600px) {
+    .gallery .spotlight-group {
+        display: block;
+    }
+}
