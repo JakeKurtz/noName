@@ -1,288 +1,410 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <title>noName... </title>
-    <link rel="stylesheet" href="./styles/style.css">
-    <link rel="stylesheet" href="prism.css" data-noprefix />
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=no">
-    <script src="prism.js"></script>
-</head>
-<body>
-    <script src="./includeHTML.js"></script>
+    <head>
+        <title>noName... </title>
+        <link rel="stylesheet" href="./styles/style.css">
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=no">
+        <style>
+            body {
+                text-align: center;
+                margin: 0px;
+            }
 
-    <div class="container">
-        <div include-html="navbar.html"></div>
-        <script>includeHTML();</script>
+            .objViewer {
+                font-family: Courier New, courier, monospace;
+                width: 80vw;
+                height: 80vh;
+                max-width: 60em;
+                margin: 20px;
+                display: inline-block;
+            }
 
-        <div class="article">
-            <h1>Astrophotography: Trials and Tribulations</h1>
-            <h4 class="date">July 13, 2020</h4>
-            <hr>
+            .controls {
+                position: relative;
+            }
 
-            <p>
-                Okay, so last week I began my journey into astrophotography. Let's just say it's been educational.
-                <br><br>
-                I'll start by showing off my setup.
-                <br><br>
-                A lens support bracket that I built from some stuff I picked up from the hardware store. Planning to add some rubber tape, support for the lens, a velcro strap, and a little knob to screw in the camera easier.
-            </p>
-            <img class="demoImage" width=400 src="https://i.imgur.com/XeF1hkc.jpg">
-            <p>
-                Using a Sony a6000 with an old school Olympus 85-300mm lens that I order off of ebay for like 50 bucks.
-            </p>
-            <div class="container_center">
-                <img class="img_row" width=400 src="https://i.imgur.com/AzehBGb.jpg"><img class="img_row" width=400 src="https://i.imgur.com/RunwYrp.jpg">
+            .controls .howto {
+                position: absolute;
+                padding-left: 200px;
+                padding-top: 7px;
+                margin-right: 10px;
+            }
+
+            .objViewer #my_Canvas {
+                width: 80vw;
+                height: 80vh;
+                max-width: 60em;
+            }
+
+            .objViewer .controls {
+                display: grid;
+                grid-template-columns: 200px 200px 200px auto;
+                margin-bottom: 20px;
+            }
+
+            .objViewer .controls .control-item {
+                text-align: left;
+                background-color: lightgray;
+                border: 7px solid lightgray;
+            }
+            .objViewer .controls .slider .control-item {
+                text-align: center;
+            }
+
+            .objViewer .controls .slider .control-item .output {
+                text-align: center;
+            }
+
+            @media(max-width: 900px) {
+                .objViewer .controls {
+                    grid-template-columns: auto auto;
+                }
+                    .objViewer .controls .control-item {
+                        text-align: left;
+                    }
+            }
+
+        </style>
+    </head>
+    <body>
+        <script src="./includeHTML.js"></script>
+
+        <div class="container">
+            <div include-html="navbar.html"></div>
+            <script>includeHTML();</script>
+
+            <h1 class="title" align="center">Craig Reynolds' Boids</h1>
+            <div class="objViewer">
+                <canvas class="canvas" id="my_Canvas"></canvas>
+
+                <div class="controls">
+                    <div class="slider">
+                        <div class="control-item">
+                            <p>Number of boids:</p>
+                            <input type="range" min="1" max="2000" value="100" id="slider_boids">
+                            <div class="output">
+                                <output id="slider_output_boids"></output>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slider">
+                        <div class="control-item">
+                            <p>Time step:</p>
+                            <input type="range" min="0" max="50" value="50" id="slider_time">
+                            <div class="output">
+                                <output id="slider_output_time"></output>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-item">
+                        <br><br>
+                        <input type="checkbox" id="show_octree"><label> Show octree </label>
+                    </div>
+
+                    <div class="control-item" input="radio">
+                        <p>Shader:</p>
+                        <input type="radio" id="radio_fancy" name="control" checked="checked">
+                        <label> Fancy </label><br>
+                        <input type="radio" id="radio_optimal" name="control">
+                        <label> Optimal</label><br>
+                    </div>
+                </div>
             </div>
-            <p>
-                Since my balcony has a pretty good view of the south-southeastern sky, I started there to look for some cool deep space objects.
-                <br><br>
-                I decided to start with the blue horsehead nebula, since it has a magnitude of 4.03 and is quite large.
-                <br><br>
-                Once I worked out the kinks with the auto shutter/continuous shooting and getting enough storage, I immediately ran into issues. Since the nebula is kinda close to the horizon the lens flare from the street lights was giving me some serious issues and limited the amount of time I could shoot for. This is what 5 minutes of integration looks like,
-            </p>
-            <img class="demoImage" width=1000 src="https://i.imgur.com/goBIiGj.jpg">
-            <p>
-                and even then you can still see some flare in the upper left corner. You can also see some vignetting, which I didn't really notice at the time.
-                <br><br>
-                So I decide to switch to a different target, something higher up in the sky. Even though it's kinda small for a 300mm lens, I picked the <a href="https://en.wikipedia.org/wiki/Dumbbell_Nebula">Dumbbell Nebula</a>. Apparently it's quite easy for beginners, so even if it did turn out to be tiny, why the hell not?
-                <br><br>
-                1 hour and 43 minutes of integration at 64000 iso, 300mm
-            </p>
-            <img class="demoImage" width=1000 src="https://i.imgur.com/viA2K7n.jpg">
-            <p>
-                Super cool, even though it's faint and a little blurry. At this point, I kinda clued into the fact that a having wide open aperture was causing the vignette effect and also contributing to the lack of sharpness in the final image.
-                <br><br>
-                So last night I fixed my lens on the <a href="https://en.wikipedia.org/wiki/Veil_Nebula">Veil Nebula<a>. My reasoning was that first off, It's huge. Secondly, it has a magnitude of 7.00 which is like 0.40 brighter than the dumbbell nebula. What I didn't consider was that surface brightness is 18.15 meg/arcmin. This basically means that the object itself is bright, but the brightness per surface area is not. Another lesson learned: magnitude is important, but so is the object size. So, that paired with the fact that I was using a smaller aperture lead to disappointing results.
-            </p>
-            <img class="demoImage" width=1000 src="https://i.imgur.com/nyfKa3Y.jpg">
-            <p>
-                There were some positives though. The smaller aperture did eliminate the vignette and I also found that the stars (even though they're trailing a little) are sharper.
-                <br><br>
-                It is really faint but if you look hard enough you can kinda start to see the nebula showing up, which is kinda neat!
-            </p>
-            <img class="demoImage" width=1000 src="https://i.imgur.com/SZuLxtR.jpg">
-            <p>
-                Not going to lie, manually tracking stars for hours on end and waiting hours for images to be processed/stacked only to get a crappy picture is really discouraging. Even though I don't have anything amazing to show for my efforts, I'm determined to capture something incredible.
-                <br><br>
-                Here's a list of the software/sites that I found useful.
-                <ul class="list">
-                    <li>Stacking: <a href="http://deepskystacker.free.fr/english/index.html">Deep Space Stacker</a></li>
-                    <li>Stretching and processing: Photoshop cc 2019</li>
-                    <li>Locating DSOs and getting info: <a href="https://stellarium.org/">Stellarium</a></li>
-                    <li>Observation conditions <a href="https://www.cleardarksky.com">Clear Dark Sky</a></li>
-                </ul>
-            </p>
+
+            <script id="vs_skybox" type="not-javascript">
+                attribute vec3 position;
+
+                uniform mat4 proj_matrix;
+                uniform mat4 view_matrix;
+
+                varying vec3 vTexCoords;
+
+                void main() {
+                    vTexCoords = position;
+                    gl_Position = proj_matrix * view_matrix * vec4(position, 0.01);
+                }
+            </script>
+            <script id="fs_skybox" type="not-javascript">
+
+                precision mediump float;
+
+                varying vec3 vTexCoords;
+                uniform samplerCube skybox;
+
+                void main() {
+                    gl_FragColor = textureCube(skybox, vTexCoords);
+                }
+            </script>
+
+            <script id="vs_optimal" type="not-javascript">
+                attribute vec3 position;
+                attribute vec3 normal;
+                attribute mat4 offset;
+
+                uniform mat4 proj_matrix;
+                uniform mat4 view_matrix;
+                uniform mat4 model_matrix;
+
+                void main() {
+                    mat4 mvp = proj_matrix * view_matrix * model_matrix * offset;
+                    gl_Position = mvp * vec4(position, 1.0);
+                }
+            </script>
+            <script id="fs_optimal" type="not-javascript">
+                precision mediump float;
+                uniform vec3 model_color;
+
+                void main() {
+                    gl_FragColor = vec4(model_color, 1.0);
+                }
+            </script>
+
+            <script id="vs_shadowmap_depth" type="not-javascript">
+                attribute vec3 position;
+                attribute vec3 normal;
+                attribute mat4 offset;
+
+                uniform mat4 proj_matrix;
+                uniform mat4 view_matrix;
+                uniform mat4 model_matrix;
+
+                void main() {
+                    mat4 mvp = proj_matrix * view_matrix * model_matrix * offset;
+                    gl_Position = mvp * vec4(position, 1.0);
+                }
+            </script>
+            <script id="fs_shadowmap_depth" type="not-javascript">
+                void main() {}
+            </script>
+
+            <script id="vs_pulcher" type="not-javascript">
+
+                attribute vec3 position;
+                attribute vec3 normal;
+                attribute mat4 offset;
+
+                uniform mat4 proj_matrix;
+                uniform mat4 view_matrix;
+                uniform mat4 model_matrix;
+                uniform mat4 lightSpaceView_matrix;
+                uniform mat4 lightSpaceProj_matrix;
+
+                varying vec3 vFragPos;
+                varying vec4 vFragPosLightSpace;
+                //varying vec3 vColor;
+                varying vec3 vNormal;
+
+                void main() {
+                    mat4 mo = model_matrix * offset;
+                    mat4 mvp = proj_matrix * view_matrix * mo;
+
+                    mat4 lightMVP = lightSpaceProj_matrix * lightSpaceView_matrix;
+
+                    gl_Position = mvp * vec4(position, 1.0);
+                    vFragPos = vec3(mo * vec4(position, 1.0));
+                    vFragPosLightSpace = lightMVP * vec4(vFragPos, 1.0);
+                    //vColor = color;
+                    vNormal = mat3(mo) * normal;
+                }
+            </script>
+            <script id="fs_pulcher" type="not-javascript">
+
+                precision mediump float;
+
+                varying vec3 vFragPos;
+                varying vec4 vFragPosLightSpace;
+                varying vec3 vNormal;
+
+                uniform vec3 viewPos;
+                uniform int lightToggle;
+                uniform sampler2D shadowMap;
+                uniform vec2 shadowMap_size;
+
+                uniform vec3 light_pos;
+                uniform float light_ambient;
+                uniform float light_diffuse;
+                uniform float light_specular;
+                uniform vec3 light_color;
+                uniform float light_luminacity;
+
+                uniform vec3 model_color;
+
+                float in_shadow(vec4 fragPosLightSpace) {
+
+                    // perform perspective divide
+                    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+                    // transform to [0,1] range
+                    projCoords = projCoords * 0.5 + 0.5;
+
+                    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+                    float closestDepth = texture2D(shadowMap, projCoords.xy).r;
+
+                    // calculate bias (based on depth map resolution and slope)
+                    vec3 normal = normalize(vNormal);
+                    vec3 lightDir = normalize(light_pos - vFragPos);
+
+                    float cosTheta = clamp( dot(normal, lightDir), 0.0,1.0 );
+                    float bias = 0.005 * tan(acos(cosTheta));
+                    bias = clamp(bias, 0.0, 0.01);
+
+                    float shadow = 0.0;
+                    vec2 texelSize = 1.0 / shadowMap_size;
+
+                    for(int x = -1; x <= 1; ++x) {
+                        for(int y = -1; y <= 1; ++y) {
+                            float pcfDepth = texture2D(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+                            shadow += projCoords.z - bias > pcfDepth  ? 1.0 : 0.0;
+                        }
+                    }
+
+                    shadow /= 9.0;
+
+                    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+                    if(projCoords.z > 1.0)
+                        shadow = 0.0;
+
+                    return shadow;
+                }
+
+                void main() {
+
+                    vec3 color = model_color;
+                    vec3 normal = normalize(vNormal);
+
+                    // ambient
+                    vec3 ambient = vec3(light_ambient);
+
+                    // diffuse
+                    vec3 lightDir = normalize(light_pos - vFragPos);
+                    float dif = max(dot(lightDir, normal), 0.0);
+                    vec3 diffuse = vec3(light_diffuse) * dif * light_color;
+
+                    // specular
+                    vec3 viewDir = normalize(viewPos - vFragPos);
+                    vec3 reflectDir = reflect(-lightDir, normal);
+                    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+                    vec3 specular = vec3(light_specular) * spec * light_color;
+
+                    // calculate shadow
+                    float shadow = in_shadow(vFragPosLightSpace);
+                    float cosTheta = clamp( dot(normal, lightDir), 0.0, 1.0 );
+
+                    //vec3 finalColor = ambient + (1.0-shadow * ((diffuse*cosTheta)+specular));
+                    vec3 lighting  = (ambient + (1.0-shadow) * (diffuse*cosTheta + specular)) * color * light_luminacity;
+                    //vec3 lighting  = (ambient + (diffuse*cosTheta + specular)) * color;
+
+                    gl_FragColor = vec4(lighting, 1.0);
+                }
+            </script>
+
+            <script type="text/plain" id="plane.obj">
+                v -1.000000 0.000000 1.000000
+                v 1.000000 0.000000 1.000000
+                v -1.000000 0.000000 -1.000000
+                v 1.000000 0.000000 -1.000000
+                vn 0.0000 1.0000 0.0000
+                s off
+                f 2//1 3//1 1//1
+                f 2//1 4//1 3//1
+            </script>
+            <script type="text/plain" id="boid.obj">
+                o Boid
+                v 0.000000 1.013128 -0.070203
+                v 0.999320 0.013808 -0.069366
+                v -0.000000 -0.985512 -0.068529
+                v -0.999320 0.013808 -0.069366
+                v 0.000000 0.015482 1.929273
+                vn 0.6667 0.6669 0.3328
+                vn 0.6667 -0.6664 0.3339
+                vn -0.6667 -0.6664 0.3339
+                vn -0.6667 0.6669 0.3328
+                vn 0.0000 -0.0008 -1.0000
+                s off
+                f 1//1 5//1 2//1
+                f 2//2 5//2 3//2
+                f 3//3 5//3 4//3
+                f 4//4 5//4 1//4
+                f 2//5 4//5 1//5
+                f 2//5 3//5 4//5
+            </script>
+            <script type="text/plain" id="cube.obj">
+                v -1.000000 -1.000000 1.000000
+                v -1.000000 1.000000 1.000000
+                v -1.000000 -1.000000 -1.000000
+                v -1.000000 1.000000 -1.000000
+                v 1.000000 -1.000000 1.000000
+                v 1.000000 1.000000 1.000000
+                v 1.000000 -1.000000 -1.000000
+                v 1.000000 1.000000 -1.000000
+                vn -1.0000 0.0000 0.0000
+                vn 0.0000 0.0000 -1.0000
+                vn 1.0000 0.0000 0.0000
+                vn 0.0000 0.0000 1.0000
+                vn 0.0000 -1.0000 0.0000
+                vn 0.0000 1.0000 0.0000
+                f 2//1 3//1 1//1
+                f 4//2 7//2 3//2
+                f 8//3 5//3 7//3
+                f 6//4 1//4 5//4
+                f 7//5 1//5 3//5
+                f 4//6 6//6 8//6
+                f 2//1 4//1 3//1
+                f 4//2 8//2 7//2
+                f 8//3 6//3 5//3
+                f 6//4 2//4 1//4
+                f 7//5 5//5 1//5
+                f 4//6 2//6 6//6
+            </script>
+            <script type="text/plain" id="cubeDebug.obj">
+                v -1.000000 -1.000000 1.000000
+                v -1.000000 1.000000 1.000000
+                v -1.000000 -1.000000 -1.000000
+                v -1.000000 1.000000 -1.000000
+                v 1.000000 -1.000000 1.000000
+                v 1.000000 1.000000 1.000000
+                v 1.000000 -1.000000 -1.000000
+                v 1.000000 1.000000 -1.000000
+                vn 1.0000 0.0000 0.0000
+                vn 0.0000 0.0000 1.0000
+                vn -1.0000 0.0000 0.0000
+                vn 0.0000 0.0000 -1.0000
+                vn 0.0000 1.0000 0.0000
+                vn 0.0000 -1.0000 0.0000
+                f 1//2 2//2 6//2
+                f 6//4 5//4 1//4
+                f 1//2 3//2 4//2
+                f 4//4 2//4 1//4
+                f 5//2 7//2 8//2
+                f 8//4 6//4 5//4
+                f 7//2 3//2 4//2
+                f 4//4 8//4 7//4
+                f 5//2 1//2 3//2
+                f 3//4 7//4 5//4
+            </script>
+
+            <script src="./boidDriver.js" type="module"></script>
+
+            <script>
+                var slider_boids = document.getElementById("slider_boids");
+                var output_boids = document.getElementById("slider_output_boids");
+                output_boids.innerHTML = slider_boids.value;
+
+                slider_boids.oninput = function () {
+                    output_boids.innerHTML = this.value;
+                }
+
+                var slider_time = document.getElementById("slider_time");
+                var output_time = document.getElementById("slider_output_time");
+                output_time.innerHTML = slider_time.value / 1000;
+
+                slider_time.oninput = function () {
+                    output_time.innerHTML = this.value / 1000;
+                }
+
+            </script>
         </div>
-        <div class="article">
-            <h1>A continuation of my exploration of noise.</h1>
-            <h4 class="date">June 11, 2020</h4>
-            <hr>
-            <p>
-                So after creating the bodies of water, I needed a way to give them "life". After some googling, I came across this <a href="https://twitter.com/TheRujiK/status/1208035937671884800">twitter post</a>
-                and thought it looked pretty badass. So for the most part, that's what I was using for a reference.
-                <br><br>
-                First things first was creating a way to calculate simplex noise. I'm lazy naturally, so instead of reinventing the wheel
-                I found this <a href="https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83">awesome resource</a> for noise functions.
-            </p>
-            <p>This was the noise code that was used to generate the follwing image.</p>
-            <pre><code class="language-clike">vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
-
-float snoise(vec2 v){
-    const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-    vec2 i  = floor(v + dot(v, C.yy) );
-    vec2 x0 = v - i + dot(i, C.xx);
-    vec2 i1;
-  
-    i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-  
-    vec4 x12 = x0.xyxy + C.xxzz;
-    x12.xy -= i1;
-  
-    i = mod(i, 289.0);
-    vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-    + i.x + vec3(0.0, i1.x, 1.0 ));
-    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-    m = m*m ;
-    m = m*m ;
-    vec3 x = 2.0 * fract(p * C.www) - 1.0;
-    vec3 h = abs(x) - 0.5;
-    vec3 ox = floor(x + 0.5);
-    vec3 a0 = x - ox;
-    m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-    vec3 g;
-    g.x  = a0.x  * x0.x  + h.x  * x0.y;
-    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-  
-    return 130.0 * dot(m, g);
-}
-
-float OctavePerlin(vec2 v, float persistence) {
-    float total = 0.0;
-    float frequency = 1.0;
-    float amplitude = 1.0;
-    float maxValue = 0.0;  // Used for normalizing result to 0.0 - 1.0
-    for(int i = 0; i < 8; i++) {
-        total += snoise(v * frequency) * amplitude;
-        
-        maxValue += amplitude;
-        
-        amplitude *= persistence;
-        frequency *= 2.0;
-    }
-    return total/maxValue;
-}</code>
-            </pre>
-            <p>And here are the results, which look as expected</p>
-            <img class="demoImage" width="500" height="500" src="images/noise1.PNG">
-            <p>
-                Now it's time to start messing around and trying to get this to look like water!
-                I first started by reducing the number of octaves to 1, which gives it a more "blobby" look.
-            </p>
-            <img class="demoImage" width="500" height="500" src="images/noise2.png">
-            <p>To give the illusion of movement, we need this bad boy to start scrolling, which is quite simple.</p>
-            <pre><code class="language-clike">float time = u_time;
-vec3 color = vec3(0.0);
-vec2 vel = vec2(-1.,0.0) * time;
-
-color = vec3(OctavePerlin(pos + vel, 0.5));</code>
-            </pre>
-            <img class="demoImage" width="500" height="500" src="images/water1.gif">
-            <p>I then stretch the texture using a scale matrix.</p>
-            <img class="demoImage" width="500" height="500" src="images/water2.gif">
-            <p>It reall starts to come to life when using two scrolling textures.</p>
-
-            <pre><code class="language-clike">float time = u_time;
-vec3 color = vec3(0.0);
-
-vec2 vel1 = vec2(-1.,0.0)*time;
-vec2 vel2 = vec2(1.0,0.0)*time;
-
-color = vec3(OctavePerlin(pos + vel1, 0.5));
-color += vec3(OctavePerlin(pos + vel2, 0.5));</code>
-            </pre>
-            <img class="demoImage" width="500" height="500" src="images/water3.gif">
-            <p>
-                I really like the look and movement at this point. The only problem is that this doesn't look like water.
-                The idea is that this black and white scrolling texture is a height map, so all we need to do is find a way to convert a height map into a normal map.
-                This is accomplished by using image processing technique called the <a href="https://en.wikipedia.org/wiki/Sobel_operator">Sobel operator</a>. So by sampling the surrounding pixels in the image, we can calculate the approximate direction of the normal.
-                <br>
-                This is the result
-                <br>
-            </p>
-            <img class="demoImage" width="500" height="500" src="images/water4.gif">
-            <p>and the final product with a simple phong shader</p>
-            <img class="demoImage" width="500" height="500" src="images/water5.gif">
-            <p>I'm pretty happy with these results. This will really come to life with reflections (SSR) which is the next thing I'm going to tackle.</p>
-        </div>
-        <div class="article">
-            <h1>Noise and Terrain Generation</h1>
-            <h4 class="date">June 04, 2020</h4>
-            <hr>
-            <p>
-                I've started to work on my game project once again and wanted to start creating interesting and natural enviroments.
-                In the past I've spent a ludicris amount of time mundanly placing objects around a map. Not only is this boring, but it's painful. So this time around I decided to create procedural maps with automatic foliage placement by using a combination of possian disk distribution and perlin noise.
-                <br>
-                I was inspired by this <a href="https://www.youtube.com/watch?v=NfizT369g60">video</a> on procedural environments for FarCry 5.
-                <br>
-                This post mainly deals with generating the main terrain height map and isolating the lowest (or darkest) regions into
-                a wavefront obj file.
-            </p>
-
-            <p>I started by generating a simple image of simplex noise.</p>
-            <pre><code class="language-python">import noise
-def genTerrain(size, scale):
-    dimensions = (size, size)
-    octaves = 5
-    persistence = 0.5
-    lacunarity = 2.0
-    offset = 0.5
-
-    noiseMap = np.zeros(dimensions)
-
-    for i in range(dimensions[0]):
-        for j in range(dimensions[1]):
-            noiseMap[i][j] = (noise.snoise2(
-                                i/scale,
-                                j/scale,
-                                octaves=octaves,
-                                persistence=persistence,
-                                lacunarity=lacunarity,
-                                repeatx=size,
-                                repeaty=size,
-                                base=0) + offset)
-    return noiseMap
-
-mapTerrain = genTerrain(1024, 500)</code>
-</pre>
-            <img class="demoImage" width="500" height="500" src="https://i.imgur.com/zOPyT3f.png">
-            <p>Next, I simplified the image by limiting the number of levels used. Here I'm using 8 levels of grey.</p>
-            <pre><code class="language-python">def colorNoiseMap(noiseMap, numberOfColors):
-    noiseMapColored = np.zeros(noiseMap.shape+(3,), dtype=np.uint8)
-    colorDict = getColorDict(numberOfColors)
-
-    buckets = [round(x, 5) for x in drange(0.0, 1.0, 1.0 / numberOfColors)]
-
-    for i in range(noiseMap.shape[0]):
-        for j in range(noiseMap.shape[1]):
-            bucket = take_closest(buckets, noiseMap[i][j])
-            noiseMapColored[i][j] = colorDict.get(bucket)
-
-    return noiseMapColored</code>
-            </pre>
-            <img class="demoImage" width="500" height="500" src="https://i.imgur.com/XbH1KG2.png">
-            <p>
-                I wanted the darker regions in the image to be the bodies of water and to have the lighter regions
-                populated with trees, grass, and other foliage.
-                Using cv2, I found the contours of each body of water and store that as a list of points.
-            </p>
-            <img class="demoImage" width="500" height="500" src="https://i.imgur.com/m2nMyn3.png">
-            <p>
-                Each of these contours are then triangulated (thanks to <a href="https://gis.stackexchange.com/questions/316697/delaunay-triangulation-algorithm-in-shapely-producing-erratic-result">nickves</a>)
-                and stored into a wavefront obj file.
-            </p>
-            <pre><code class="language-python">def createWavefrontOBJ(lakes):
-    vertices = []
-    polygons = []
-
-    for lake in lakes:
-        lakePoly = Polygon(lake)
-        if (lakePoly.is_valid):
-        lakeTriangles = triangulatePoints(lakePoly)
-        for t in lakeTriangles:
-            v = list(t.exterior.coords)
-
-    v1 = (v[0][0], v[0][1], 0.0)
-    v2 = (v[1][0], v[1][1], 0.0)
-    v3 = (v[2][0], v[2][1], 0.0)
-
-    vertices.append(v1)
-    vertices.append(v2)
-    vertices.append(v3)
-
-    size = len(vertices)
-
-    polygons.append((size-2,size-1,size))
-
-    f = open("water.obj", "w")
-
-    for v in vertices:
-        f.write("v "+str(v[0])+" "+str(v[1])+" "+str(v[2])+"\n")
-
-    f.write("\nvn 0.0 1.0 0.0\n\n")
-
-    for p in polygons:
-        f.write("f "+str(p[0])+"//1 "+str(p[1])+"//1 "+str(p[2])+"//1\n")
-
-    f.close()</code>
-            </pre>
-            <img class="demoImage" width="500" height="500" src="https://i.imgur.com/lRkRei3.png">
-            <p>
-                The code is not the nicest, but I did have a lot of fun writing this up. The only
-                thing that was a pain was getting all the libraries installed correctly.
-                <br>
-                The next thing to do is create a shader for the water and create a way to place objects using poisson disk distribution, which shouldn't be difficult.
-            </p>
-        </div>
-    </div>
-</body>
+    </body>
 </html>
