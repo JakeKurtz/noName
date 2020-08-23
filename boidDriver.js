@@ -7,12 +7,12 @@ glMatrix.setMatrixArrayType(Array);
 
 var g_boid_time_step = 0.05;
 
-var g_seperation_radius = 5;
-var g_alignment_radius = 10;
-var g_cohesion_radius = 20;
+var g_seperation_radius = 3;
+var g_alignment_radius = 20;
+var g_cohesion_radius = 50;
 
-var g_maxSpeed = 10;
-var g_maxForce = 5;
+var g_maxSpeed = 30;
+var g_maxForce = 15;
 
 var canvas = document.getElementById('my_Canvas');
 var gl = canvas.getContext('webgl2');
@@ -34,6 +34,7 @@ function randrange(min, max) {
 function addBoids(nmb_boids, boids) {
 
     var numberToAdd = nmb_boids - boids.length;
+    var idStart = nmb_boids;
 
     for (var i = 0; i < numberToAdd; i++) {
         var x = randrange(-1, 1) * 50;
@@ -44,9 +45,10 @@ function addBoids(nmb_boids, boids) {
         var b = Math.random();
         var c = Math.random();
 
-        boids.push(new Boid(i, [x, y + yoffset, z], [2 * a, 2 * b, 2 * c]));
+        boids.push(new Boid(i+idStart, [x, y + yoffset, z], [2 * a, 2 * b, 2 * c]));
     }
 }
+
 function killBoids(nmb_boids, boids) {
     boids.length = nmb_boids;
 }
@@ -305,7 +307,7 @@ var animate = function (time) {
         nmb_boids_old = nmb_boids;
     }
 
-    var octree = new Octree(boids, 6, [0, yoffset, 0], 100, show_octree);
+    var octree = new Octree(boids, 15, [0, yoffset, 0], 100, show_octree);
     octree.build();
 
     //#region FRAME SETUP
@@ -320,17 +322,6 @@ var animate = function (time) {
     //#endregion
 
     //#region MANIPULATION
-    
-    //mat4.identity(octree.cube.model_matrix);
-    //mat4.rotateY(octree.cube.model_matrix, octree.cube.model_matrix, THETA);
-    //mat4.rotateX(octree.cube.model_matrix, octree.cube.model_matrix, PHI);
-
-    //mat4.identity(boidMesh.model_matrix);
-    //mat4.rotateY(boidMesh.model_matrix, boidMesh.model_matrix, THETA);
-    //mat4.rotateX(boidMesh.model_matrix, boidMesh.model_matrix, PHI);
-
-    //vec3.rotateY(light.pos, light.pos, [0, 0, 0], 0.01);
-    //mat4.lookAt(light.view_matrix, light.pos, [0, 0, 0], [0, 1, 0]);
 
     cam.zoom(zoom);
     cam.rotate(yaw, pitch);
@@ -345,12 +336,12 @@ var animate = function (time) {
 
         b.updateNeighbourhood(octree);
 
-        b.seperate(g_seperation_radius, 15, 12);
-        b.align(g_alignment_radius, 15, 12);
-        b.cohesion(g_cohesion_radius, g_seperation_radius, 15, 12);
+        b.seperate(g_seperation_radius, g_maxSpeed, g_maxForce);
+        b.align(g_alignment_radius, g_maxSpeed, g_maxForce);
+        b.cohesion(g_cohesion_radius, g_seperation_radius, g_maxSpeed, g_maxForce);
 
-        b.wallCollision(walls, 15, 15);
-        b.forceFeild(5,1);
+        b.wallCollision(walls, g_maxSpeed, g_maxForce);
+        b.forceFeild(g_maxSpeed, g_maxForce);
     }
     
     // Euler integration //
@@ -370,7 +361,7 @@ var animate = function (time) {
     boidMesh.clearInstances();
     for (b of boids) {
         var boidMatrix = b.getBNT();
-        mat4.scale(boidMatrix, boidMatrix, [0.35,0.35,0.35]);
+        mat4.scale(boidMatrix, boidMatrix, [0.6,0.6,0.6]);
         boidMesh.addInstance(boidMatrix);
     }
     
