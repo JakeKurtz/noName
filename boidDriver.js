@@ -93,7 +93,6 @@ var eZ = 0;
 var zoom = 110;
 
 var cam = new Camera([eX, eY, eZ], zoom);
-var cube = new ObjectInstanced3D('cube.obj');
 var boidMesh = new ObjectInstanced3D('boid.obj');
 
 boidMesh.color = [1, 1, 1];
@@ -101,7 +100,6 @@ boidMesh.color = [1, 1, 1];
 var mat = mat4.create();
 mat4.scale(mat, mat, [1, 1, 1]);
 mat4.translate(mat,mat,[100,100,100]);
-cube.addInstance(mat);
 
 var nmb_boids = 500;
 var nmb_boids_old = nmb_boids;
@@ -307,7 +305,7 @@ var animate = function (time) {
         nmb_boids_old = nmb_boids;
     }
 
-    var octree = new Octree(boids, 6, [0, yoffset, 0], 100, show_octree);
+    var octree = new Octree(boids, 15, [0, yoffset, 0], 100, show_octree);
     octree.build();
 
     //#region FRAME SETUP
