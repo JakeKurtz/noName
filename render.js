@@ -1,1783 +1,439 @@
-import { ObjectInstanced3D } from './render.js'
-import { glMatrix, mat4 } from './gl-matrix/src/index.js'
+import { glMatrix, mat4, vec3, quat } from './gl-matrix/src/index.js'
+import { perspective } from './gl-matrix/src/mat4.js';
 
 var canvas = document.getElementById('my_Canvas');
 var gl = canvas.getContext('webgl2');
 
 glMatrix.setMatrixArrayType(Array);
 
-var LDB = 0;
-var LDF = 1;
-var LUB = 2;
-var LUF = 3;
-var RDB = 4;
-var RDF = 5;
-var RUB = 6;
-var RUF = 7;
+function loadOBJ(obj, filename) {
 
-var L = 8;
-var R = 9;
-var D = 10;
-var U = 11;
-var B = 12;
-var F = 13;
+    var vertices_tmp = [];
+    var texcoords_tmp = [];
+    var normals_tmp = [];
 
-var LD = 14;
-var LU = 15;
-var LB = 16;
-var LF = 17;
-var RD = 18;
-var RU = 19;
-var RB = 20;
-var RF = 21;
-var DB = 22;
-var DF = 23;
-var UB = 24;
-var UF = 25;
+    var vertex_indices = [];
+    var texcoord_indices = [];
+    var normal_indices = [];
 
+    var vertex_out = [];
+    var texcoord_out = [];
+    var normal_out = [];
 
-function adjacent_table(dir, oct) {
-    switch (dir) {
-        case L:
-            switch (oct) {
-                case LDB:
-                    return true;
-                case LDF:
-                    return true;
-                case LUB:
-                    return true;
-                case LUF:
-                    return true;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case R:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return true;
-                case RDF:
-                    return true;
-                case RUB:
-                    return true;
-                case RUF:
-                    return true;
-            }
-        case D:
-            switch (oct) {
-                case LDB:
-                    return true;
-                case LDF:
-                    return true;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return true;
-                case RDF:
-                    return true;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case U:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return true;
-                case LUF:
-                    return true;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return true;
-                case RUF:
-                    return true;
+    var objStr = document.getElementById(filename).innerHTML;
+    objStr = objStr.split("\n");
 
-            }
-        case B:
-            switch (oct) {
-                case LDB:
-                    return true;
-                case LDF:
-                    return false;
-                case LUB:
-                    return true;
-                case LUF:
-                    return false;
-                case RDB:
-                    return true;
-                case RDF:
-                    return false;
-                case RUB:
-                    return true;
-                case RUF:
-                    return false;
-            }
-        case F:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return true;
-                case LUB:
-                    return false;
-                case LUF:
-                    return true;
-                case RDB:
-                    return false;
-                case RDF:
-                    return true;
-                case RUB:
-                    return false;
-                case RUF:
-                    return true;
-            }
-        case LD:
-            switch (oct) {
-                case LDB:
-                    return true;
-                case LDF:
-                    return true;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case LU:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return true;
-                case LUF:
-                    return true;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case LB:
-            switch (oct) {
-                case LDB:
-                    return true;
-                case LDF:
-                    return false;
-                case LUB:
-                    return true;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case LF:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return true;
-                case LUB:
-                    return false;
-                case LUF:
-                    return true;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case RD:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return true;
-                case RDF:
-                    return true;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case RU:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return true;
-                case RUF:
-                    return true;
-            }
-        case RB:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return true;
-                case RDF:
-                    return false;
-                case RUB:
-                    return true;
-                case RUF:
-                    return false;
-            }
-        case RF:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return true;
-                case RUB:
-                    return false;
-                case RUF:
-                    return true;
-            }
-        case DB:
-            switch (oct) {
-                case LDB:
-                    return true;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return true;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case DF:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return true;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return true;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case UB:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return true;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return true;
-                case RUF:
-                    return false;
-            }
-        case UF:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return true;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return true;
-            }
-        case LDB:
-            switch (oct) {
-                case LDB:
-                    return true;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case LDF:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return true;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case LUB:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return true;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case LUF:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return true;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case RDB:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return true;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case RDF:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return true;
-                case RUB:
-                    return false;
-                case RUF:
-                    return false;
-            }
-        case RUB:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return true;
-                case RUF:
-                    return false;
-            }
-        case RUF:
-            switch (oct) {
-                case LDB:
-                    return false;
-                case LDF:
-                    return false;
-                case LUB:
-                    return false;
-                case LUF:
-                    return false;
-                case RDB:
-                    return false;
-                case RDF:
-                    return false;
-                case RUB:
-                    return false;
-                case RUF:
-                    return true;
-            }
-        default:
-            return false;
-    }
-}
-function reflect_table(dir, oct) {
-    switch (dir) {
-        case L:
-            switch (oct) {
-                case LDB:
-                    return RDB;
-                case LDF:
-                    return RDF;
-                case LUB:
-                    return RUB;
-                case LUF:
-                    return RUF;
-                case RDB:
-                    return LDB;
-                case RDF:
-                    return LDF;
-                case RUB:
-                    return LUB;
-                case RUF:
-                    return LUF;
-            }
-        case R:
-            switch (oct) {
-                case LDB:
-                    return RDB;
-                case LDF:
-                    return RDF;
-                case LUB:
-                    return RUB;
-                case LUF:
-                    return RUF;
-                case RDB:
-                    return
-                case RDF:
-                    return
-                case RUB:
-                    return
-                case RUF:
-                    return
-            }
-        case D:
-            switch (oct) {
-                case LDB:
-                    return LUB;
-                case LDF:
-                    return LUF;
-                case LUB:
-                    return LDB;
-                case LUF:
-                    return LDF;
-                case RDB:
-                    return RUB;
-                case RDF:
-                    return RUF;
-                case RUB:
-                    return RDB;
-                case RUF:
-                    return RDF;
-            }
-        case U:
-            switch (oct) {
-                case LDB:
-                    return LUB;
-                case LDF:
-                    return LUF;
-                case LUB:
-                    return LDB;
-                case LUF:
-                    return LDF;
-                case RDB:
-                    return RUB;
-                case RDF:
-                    return RUF;
-                case RUB:
-                    return RDB;
-                case RUF:
-                    return RDF;
-            }
-        case B:
-            switch (oct) {
-                case LDB:
-                    return LDF;
-                case LDF:
-                    return LDB;
-                case LUB:
-                    return LUF;
-                case LUF:
-                    return LUB;
-                case RDB:
-                    return RDF;
-                case RDF:
-                    return RDB;
-                case RUB:
-                    return RUF;
-                case RUF:
-                    return RUB;
-            }
-        case F:
-            switch (oct) {
-                case LDB:
-                    return LDF;
-                case LDF:
-                    return LDB;
-                case LUB:
-                    return LUF;
-                case LUF:
-                    return LUB;
-                case RDB:
-                    return RDF;
-                case RDF:
-                    return RDB;
-                case RUB:
-                    return RUF;
-                case RUF:
-                    return RUB;
-            }
-        case LD:
-            switch (oct) {
-                case LDB:
-                    return RUB;
-                case LDF:
-                    return RUF;
-                case LUB:
-                    return RDB;
-                case LUF:
-                    return RDF;
-                case RDB:
-                    return LUB;
-                case RDF:
-                    return LUF;
-                case RUB:
-                    return LDB;
-                case RUF:
-                    return LDF;
-            }
-        case LU:
-            switch (oct) {
-                case LDB:
-                    return RUB;
-                case LDF:
-                    return RUF;
-                case LUB:
-                    return RDB;
-                case LUF:
-                    return RDF;
-                case RDB:
-                    return LUB;
-                case RDF:
-                    return LUF;
-                case RUB:
-                    return LDB;
-                case RUF:
-                    return LDF;
-            }
-        case LB:
-            switch (oct) {
-                case LDB:
-                    return RDF;
-                case LDF:
-                    return RDB;
-                case LUB:
-                    return RUF;
-                case LUF:
-                    return RUB;
-                case RDB:
-                    return LDF;
-                case RDF:
-                    return LDB;
-                case RUB:
-                    return LUF;
-                case RUF:
-                    return LUB;
-            }
-        case LF:
-            switch (oct) {
-                case LDB:
-                    return RDF;
-                case LDF:
-                    return RDB;
-                case LUB:
-                    return RUF;
-                case LUF:
-                    return RUB;
-                case RDB:
-                    return LDF;
-                case RDF:
-                    return LDB;
-                case RUB:
-                    return LUF;
-                case RUF:
-                    return LUB;
-            }
-        case RD:
-            switch (oct) {
-                case LDB:
-                    return RUB;
-                case LDF:
-                    return RUF;
-                case LUB:
-                    return RDB;
-                case LUF:
-                    return RDF;
-                case RDB:
-                    return LUB;
-                case RDF:
-                    return LUF;
-                case RUB:
-                    return LDB;
-                case RUF:
-                    return LDF
-            }
-        case RU:
-            switch (oct) {
-                case LDB:
-                    return RUB;
-                case LDF:
-                    return RUF;
-                case LUB:
-                    return RDB;
-                case LUF:
-                    return RDF;
-                case RDB:
-                    return LUB;
-                case RDF:
-                    return LUF;
-                case RUB:
-                    return LDB;
-                case RUF:
-                    return LDF
-            }
-        case RB:
-            switch (oct) {
-                case LDB:
-                    return RDF;
-                case LDF:
-                    return RDB;
-                case LUB:
-                    return RUF;
-                case LUF:
-                    return RUB;
-                case RDB:
-                    return LDF;
-                case RDF:
-                    return LDB;
-                case RUB:
-                    return LUF;
-                case RUF:
-                    return LUB;
-            }
-        case RF:
-            switch (oct) {
-                case LDB:
-                    return RDF;
-                case LDF:
-                    return RDB;
-                case LUB:
-                    return RUF;
-                case LUF:
-                    return RUB;
-                case RDB:
-                    return LDF;
-                case RDF:
-                    return LDB;
-                case RUB:
-                    return LUF;
-                case RUF:
-                    return LUB;
-            }
-        case DB:
-            switch (oct) {
-                case LDB:
-                    return LUF;
-                case LDF:
-                    return LUB;
-                case LUB:
-                    return LDF;
-                case LUF:
-                    return LDB;
-                case RDB:
-                    return RUF;
-                case RDF:
-                    return RUB;
-                case RUB:
-                    return RDF;
-                case RUF:
-                    return RDB;
-            }
-        case DF:
-            switch (oct) {
-                case LDB:
-                    return LUF;
-                case LDF:
-                    return LUB;
-                case LUB:
-                    return LDF;
-                case LUF:
-                    return LDB;
-                case RDB:
-                    return RUF;
-                case RDF:
-                    return RUB;
-                case RUB:
-                    return RDF;
-                case RUF:
-                    return RDB;
-            }
-        case UB:
-            switch (oct) {
-                case LDB:
-                    return LUF;
-                case LDF:
-                    return LUB;
-                case LUB:
-                    return LDF;
-                case LUF:
-                    return LDB;
-                case RDB:
-                    return RUF;
-                case RDF:
-                    return RUB;
-                case RUB:
-                    return RDF;
-                case RUF:
-                    return RDB;
-            }
-        case UF:
-            switch (oct) {
-                case LDB:
-                    return LUF;
-                case LDF:
-                    return LUB;
-                case LUB:
-                    return LDF;
-                case LUF:
-                    return LDB;
-                case RDB:
-                    return RUF;
-                case RDF:
-                    return RUB;
-                case RUB:
-                    return RDF;
-                case RUF:
-                    return RDB;
-            }
-        case LDB:
-            switch (oct) {
-                case LDB:
-                    return RUF;
-                case LDF:
-                    return RUB;
-                case LUB:
-                    return RDF;
-                case LUF:
-                    return RDB;
-                case RDB:
-                    return LUF;
-                case RDF:
-                    return LUB;
-                case RUB:
-                    return LDF;
-                case RUF:
-                    return LDB;
-            }
-        case LDF:
-            switch (oct) {
-                case LDB:
-                    return RUF;
-                case LDF:
-                    return RUB;
-                case LUB:
-                    return RDF;
-                case LUF:
-                    return RDB;
-                case RDB:
-                    return LUF;
-                case RDF:
-                    return LUB;
-                case RUB:
-                    return LDF;
-                case RUF:
-                    return LDB;
-            }
-        case LUB:
-            switch (oct) {
-                case LDB:
-                    return RUF;
-                case LDF:
-                    return RUB;
-                case LUB:
-                    return RDF;
-                case LUF:
-                    return RDB;
-                case RDB:
-                    return LUF;
-                case RDF:
-                    return LUB;
-                case RUB:
-                    return LDF;
-                case RUF:
-                    return LDB;
-            }
-        case LUF:
-            switch (oct) {
-                case LDB:
-                    return RUF;
-                case LDF:
-                    return RUB;
-                case LUB:
-                    return RDF;
-                case LUF:
-                    return RDB;
-                case RDB:
-                    return LUF;
-                case RDF:
-                    return LUB;
-                case RUB:
-                    return LDF;
-                case RUF:
-                    return LDB;
-            }
-        case RDB:
-            switch (oct) {
-                case LDB:
-                    return RUF;
-                case LDF:
-                    return RUB;
-                case LUB:
-                    return RDF;
-                case LUF:
-                    return RDB;
-                case RDB:
-                    return LUF;
-                case RDF:
-                    return LUB;
-                case RUB:
-                    return LDF;
-                case RUF:
-                    return LDB;
-            }
-        case RDF:
-            switch (oct) {
-                case LDB:
-                    return RUF;
-                case LDF:
-                    return RUB;
-                case LUB:
-                    return RDF;
-                case LUF:
-                    return RDB;
-                case RDB:
-                    return LUF;
-                case RDF:
-                    return LUB;
-                case RUB:
-                    return LDF;
-                case RUF:
-                    return LDB;
-            }
-        case RUB:
-            switch (oct) {
-                case LDB:
-                    return RUF;
-                case LDF:
-                    return RUB;
-                case LUB:
-                    return RDF;
-                case LUF:
-                    return RDB;
-                case RDB:
-                    return LUF;
-                case RDF:
-                    return LUB;
-                case RUB:
-                    return LDF;
-                case RUF:
-                    return LDB;
-            }
-        case RUF:
-            switch (oct) {
-                case LDB:
-                    return RUF;
-                case LDF:
-                    return RUB;
-                case LUB:
-                    return RDF;
-                case LUF:
-                    return RDB;
-                case RDB:
-                    return LUF;
-                case RDF:
-                    return LUB;
-                case RUB:
-                    return LDF;
-                case RUF:
-                    return LDB;
-            }
-    }
-}
-function commonFace_table(dir, oct) {
-    switch (dir) {
-        case LD:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return L;
-                case LUF:
-                    return L;
-                case RDB:
-                    return D;
-                case RDF:
-                    return D;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return -1;
-            }
-        case LU:
-            switch (oct) {
-                case LDB:
-                    return L;
-                case LDF:
-                    return L;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return U;
-                case RUF:
-                    return -1;
-            }
-        case LB:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return L;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return L;
-                case RDB:
-                    return B;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return B;
-                case RUF:
-                    return -1;
-            }
-        case LF:
-            switch (oct) {
-                case LDB:
-                    return L;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return L;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return F;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return F;
-            }
-        case RD:
-            switch (oct) {
-                case LDB:
-                    return D;
-                case LDF:
-                    return D;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return R;
-                case RUF:
-                    return R;
-            }
-        case RU:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return U;
-                case LUF:
-                    return U;
-                case RDB:
-                    return R;
-                case RDF:
-                    return R;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return -1;
-            }
-        case RB:
-            switch (oct) {
-                case LDB:
-                    return B;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return B;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return R;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return R;
-            }
-        case RF:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return F;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return F;
-                case RDB:
-                    return R;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return R;
-                case RUF:
-                    return -1;
-            }
-        case DB:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return D;
-                case LUB:
-                    return B;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return D;
-                case RUB:
-                    return B;
-                case RUF:
-                    return -1;
-            }
-        case DF:
-            switch (oct) {
-                case LDB:
-                    return D;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return F;
-                case RDB:
-                    return D;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return F;
-            }
-        case UB:
-            switch (oct) {
-                case LDB:
-                    return B;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return U;
-                case RDB:
-                    return B;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return U;
-            }
-        case UF:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return F;
-                case LUB:
-                    return U;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return F;
-                case RUB:
-                    return U;
-                case RUF:
-                    return -1;
-            }
-        case LDB:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return L;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return D;
-                case RUB:
-                    return B;
-                case RUF:
-                    return -1;
-            }
-        case LDF:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return L;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return D;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return F;
-            }
-        case LUB:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return L;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return B;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return U;
-            }
-        case LUF:
-            switch (oct) {
-                case LDB:
-                    return L;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return F;
-                case RUB:
-                    return U;
-                case RUF:
-                    return -1;
-            }
-        case RDB:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return D;
-                case LUB:
-                    return B;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return R;
-            }
-        case RDF:
-            switch (oct) {
-                case LDB:
-                    return D;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return F;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return R;
-                case RUF:
-                    return -1;
-            }
-        case RUB:
-            switch (oct) {
-                case LDB:
-                    return B;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return U;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return R;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return -1;
-            }
-        case RUF:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return F;
-                case LUB:
-                    return U;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return R;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return -1;
-            }
-    }
-}
-function commonEdge_table(dir, oct) {
-    switch (dir) {
-        case LDB:
-            switch (oct) {
-                case LDB:
-                    return -1
-                case LDF:
-                    return LD;
-                case LUB:
-                    return LB;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return DB;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return -1;
-            }
-        case LDF:
-            switch (oct) {
-                case LDB:
-                    return LD;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return LF;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return DF;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return -1;
-            }
-        case LUB:
-            switch (oct) {
-                case LDB:
-                    return LB;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return LU;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return UB;
-                case RUF:
-                    return -1;
-            }
-        case LUF:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return LF;
-                case LUB:
-                    return LU;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return UF;
-            }
-        case RDB:
-            switch (oct) {
-                case LDB:
-                    return DB;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return RD;
-                case RUB:
-                    return RB;
-                case RUF:
-                    return -1;
-            }
-        case RDF:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return DF;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return RD;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return RF;
-            }
-        case RUB:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return UB;
-                case LUF:
-                    return -1;
-                case RDB:
-                    return RB;
-                case RDF:
-                    return -1;
-                case RUB:
-                    return -1;
-                case RUF:
-                    return RU;
-            }
-        case RUF:
-            switch (oct) {
-                case LDB:
-                    return -1;
-                case LDF:
-                    return -1;
-                case LUB:
-                    return -1;
-                case LUF:
-                    return UF;
-                case RDB:
-                    return -1;
-                case RDF:
-                    return RF;
-                case RUB:
-                    return RU;
-                case RUF:
-                    return -1;
-            }
-    }
-}
+    var line;
+    for (line of objStr) {
+        var terms = line.trim().split(' ');
+        switch (terms[0]) {
+            case "v":
+                vertices_tmp.push.apply(vertices_tmp, [[Number(terms[1]), Number(terms[2]), Number(terms[3])]]);
+                break;
+            case "vt":
+                texcoords_tmp.push.apply(texcoords_tmp, [[Number(terms[1]), Number(terms[2])]]);
+                break;
+            case "vn":
+                normals_tmp.push.apply(normals_tmp, [[Number(terms[1]), Number(terms[2]), Number(terms[3])]]);
+                break;
+            case "f":
+                for (var n = 1; n <= 3; n++) {
 
-class Node {
-    constructor(root, center, scale, octant) {
-        this.root = root;
-        this.octant = octant;
-        this.scale = scale;
-        this.children = [];
-        this.center = center;
-        this.leaf = false;
-        this.objects = [];
-    }
-}
+                    var data = terms[n].split("/");
 
-class Octree {
-    constructor(points, maxDepth, center, scale, render) {
+                    var vi = Number(data[0]);
+                    //var j = Number(data[1]);
+                    var ni = Number(data[2]);
 
-        this.points = points.slice();
-
-        this.minPerBucket = true;
-        this.maxDepth = maxDepth;
-        this.center = center;
-        this.scale = scale;
-        this.render = render;
-
-        this.root = new Node(null, this.center, this.scale, -1);
-        this.root.objects = this.points;
-
-        this.cube = new ObjectInstanced3D('cubeDebug.obj');
-        this.cube.color = [0, 0, 0];
-        this.cube.style = gl.LINE_LOOP;
-    }
-
-    // PUBLIC
-    build() {
-        this.build_rec(this.root, this.maxDepth);
-    }
-
-    // PRIVATE
-
-    son(father, octant) {
-        var child;
-        for (child of father.children) {
-            if (child.octant == octant) {
-                return child;
-            }
-        }
-
-        return null;
-    }
-
-    face_neighbour(node, dir) {
-        var Q = null;
-        // Find a common ancestor //
-        if (node.root != null && adjacent_table(dir, node.octant)) {
-            Q = this.face_neighbour(node.root, dir);
-        } else {
-            Q = node.root; 
-        }
-        // Follow the reflected path to locate the neighbour // 
-        if (Q != null && Q.leaf == false) {
-            return this.son(Q, reflect_table(dir, node.octant));
-        } else {
-            return Q;
-        }
-    }
-    edge_neighbour(node, dir) {
-        var Q = null;
-
-        // Find common ancestor //
-        if (node.root == null) {
-            Q = null;
-        } else if (adjacent_table(dir, node.octant)) {
-            Q = this.edge_neighbour(node.root, dir);
-        } else if (commonFace_table(dir, node.octant) != -1) {
-            Q = this.face_neighbour(node.root, commonFace_table(dir, node.octant));
-        } else {
-            Q = node.root;
-        }
-
-        // Follow opposite path to locate neighbour //
-        if (Q != null && Q.leaf == false) {
-            return this.son(Q, reflect_table(dir, node.octant));
-        } else {
-            return Q;
-        }
-    }
-    vertex_neighbour(node, dir) {
-        var Q = null;
-
-        // Find a common ancestor //
-        if (node.root == null) {
-            Q = null;
-        } else if (adjacent_table(dir, node.octant)) {
-            Q = this.vertex_neighbour(node.root, dir);
-        } else if (commonEdge_table(dir, node.octant) != -1) {
-            Q = this.edge_neighbour(node.root, commonEdge_table(dir, node.octant));
-        } else if (commonFace_table(dir, node.octant) != -1) {
-            Q = this.face_neighbour(node.root, commonFace_table(dir, node.octant));
-        } else {
-            Q = node.root;
-        }
-
-        // Follow opposite path to locat the neighbour //
-        if (Q != null && Q.leaf == false) {
-            return this.son(Q, reflect_table(dir, node.octant));
-        } else {
-            return Q;
-        }
-    }
-
-    relocate
-
-    getLocals(node) {
-
-        var locals = [];
-
-        var center = node.center;
-        var scale = node.scale;
-
-        var points = [];
-        if (node.root == null) {
-            var points = this.points;
-        } else {
-            var points = node.root.objects;
-        }
-
-        var x0 = center[0] + scale;
-        var x1 = center[0] - scale;
-
-        var y0 = center[1] + scale;
-        var y1 = center[1] - scale;
-
-        var z0 = center[2] + scale;
-        var z1 = center[2] - scale;
-
-        for (var i = 0; i < points.length; i++) {
-            var p = points[i];
-
-            if (p.pos[0] < x0 && p.pos[0] > x1 &&
-                p.pos[1] < y0 && p.pos[1] > y1 &&
-                p.pos[2] < z0 && p.pos[2] > z1) {
-
-                p.node = node;
-                locals.push(p);
-            }
-        }
-
-        return locals;
-    }
-    add_visual(center, scale) {
-        var mat = mat4.create();
-        mat4.translate(mat, mat, center);
-        mat4.scale(mat, mat, [scale, scale, scale]);
-        this.cube.addInstance(mat);
-    }
-    build_rec(node, depth) {
-
-        var locals = this.getLocals(node);
-
-        if (locals.length == 0) {
-            return
-        }
-
-        var center = node.center;
-        var scale = node.scale;
-
-        if (depth == 0 || locals.length == this.minPerBucket) {
-            node.leaf = true;
-            node.objects = locals;
-            if (this.render) { this.add_visual(center, scale); }
-            return
-        }
-
-        var _scale = scale / 2;
-        var octant = 0
-        for (var i = false; i < 2; i++) {
-            for (var j = false; j < 2; j++) {
-                for (var k = false; k < 2; k++) {
-
-                    var x = i;
-                    var y = j;
-                    var z = k;
-
-                    if (x == 0) { x = -true; }
-                    if (y == 0) { y = -true; }
-                    if (z == 0) { z = -true; }
-
-                    var _center = [
-                        center[0] + (x * scale / 2),
-                        center[1] + (y * scale / 2),
-                        center[2] + (z * scale / 2)];
-
-                    var _node = new Node(node, _center, _scale, octant);
-                    node.children.push(_node);
-                    node.objects = locals;
-
-                    this.build_rec(_node, depth - 1);
-
-                    octant += 1;
+                    vertex_indices.push(vi);
+                    //texcoords.push(texcoords, texcoords_tmp[i]);
+                    normal_indices.push(ni);
                 }
-            }
+                break;
         }
+    }
+
+    for (var i = 0; i <= vertex_indices.length; i++) {
+        var vertexIndex = vertex_indices[i] - 1;
+        var vertex = vertices_tmp[vertexIndex];
+        vertex_out.push.apply(vertex_out, vertex);
+    }
+
+    for (var i = 0; i <= normal_indices.length; i++) {
+        var normalIndex = normal_indices[i] - 1;
+        var normal = normals_tmp[normalIndex];
+        normal_out.push.apply(normal_out, normal);
+    }
+
+    obj.vertex_indices = vertex_indices;
+
+    obj.vertex_buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.vertex_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertex_out), gl.STATIC_DRAW);
+
+    obj.normal_buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.normal_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normal_out), gl.STATIC_DRAW);
+
+    //obj.texcoord_buffer = gl.createBuffer();
+    //gl.bindBuffer(gl.ARRAY_BUFFER, obj.texcoord_buffer);
+    //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
+}
+
+function loadImage(src) {
+    return new Promise(function (resolve) {
+        var img = new Image();
+        img.onload = () => {
+            resolve(img);
+        }
+        img.src = src;
+    });
+}
+
+function radians(deg) {
+    return deg * Math.PI / 180.0;
+}
+
+function compileShader(vertex_shader, fragment_shader) {
+
+    var vertCode = document.getElementById(vertex_shader).text;;
+    var fragCode = document.getElementById(fragment_shader).text;;
+
+    var vertShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertShader, vertCode);
+    gl.compileShader(vertShader);
+
+    var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragShader, fragCode);
+    gl.compileShader(fragShader);
+
+    var shader = gl.createProgram();
+    gl.attachShader(shader, vertShader);
+    gl.attachShader(shader, fragShader);
+    gl.linkProgram(shader);
+
+    return shader;
+}
+
+class Camera {
+    constructor(pos, fov, lookat, up) {
+        this.pos = pos || [0, 0, 0];
+        this.lookat = lookat || [0, 0, -1];
+        this.up = up || [0, 1, 0];
+        this.fov = fov || 60;
+
+        this.near = 0.1;
+        this.far = 500;
+
+        this.view_matrix = [];
+        this.proj_matrix = [];
+
+        var canvas = document.getElementById('my_Canvas');
+
+        mat4.lookAt(this.view_matrix, this.pos, this.lookat, this.up);
+        mat4.perspective(this.proj_matrix, radians(110), canvas.width / canvas.height, this.near, this.far);
+    }
+
+    rotate(yaw, pitch) {
+
+        this.lookat[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
+        this.lookat[1] = Math.sin(radians(pitch));
+        this.lookat[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
+    }
+
+    zoom(val) {
+        this.fov = val;
+    }
+
+    sendUniforms(shader) {
+
+        vec3.add(this.lookat, this.lookat, this.pos);
+
+        mat4.perspective(this.proj_matrix, this.fov * Math.PI / 180, canvas.width / canvas.height, this.near, this.far);
+        mat4.lookAt(this.view_matrix, this.pos, this.lookat, this.up);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(shader, "proj_matrix"), false, this.proj_matrix);
+        gl.uniformMatrix4fv(gl.getUniformLocation(shader, "view_matrix"), false, this.view_matrix);
     }
 }
 
-export { Octree };
+class ObjectInstanced3D {
+    constructor(objfile) {
+
+        this.style = gl.TRIANGLES;
+
+        this.model_matrix = [
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1];
+
+        this.color = [1, 1, 1];
+
+        this.vertex_indices = [];
+        this.instanceCount = 0;
+
+        loadOBJ(this, objfile)
+
+        this.offsets = [];
+
+        this.offset_buffer = gl.createBuffer();
+
+    }
+
+    addInstance(offset_matrix) {
+        this.offsets.push.apply(this.offsets, offset_matrix);
+    }
+
+    clearInstances() {
+        this.offsets.length = 0;
+    }
+
+    render(shader) {
+        // TODO break this up into smaller functions
+        gl.useProgram(shader);
+        gl.uniformMatrix4fv(gl.getUniformLocation(shader, "model_matrix"), false, this.model_matrix);
+        gl.uniform3fv(gl.getUniformLocation(shader, "model_color"), this.color);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
+        var _position = gl.getAttribLocation(shader, "position");
+        gl.vertexAttribPointer(_position, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(_position);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.normal_buffer);
+        var _normal = gl.getAttribLocation(shader, "normal");
+        gl.vertexAttribPointer(_normal, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(_normal);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.offset_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.offsets), gl.STATIC_DRAW);
+        var offsetLocation = gl.getAttribLocation(shader, "offset");
+        var offsetLocation1 = offsetLocation + 1;
+        var offsetLocation2 = offsetLocation + 2;
+        var offsetLocation3 = offsetLocation + 3;
+
+        var floatsPerRow = 4
+        var bytesPerRow = floatsPerRow * 4;
+        var bytesPerMatrix = bytesPerRow * 4;
+
+        gl.vertexAttribPointer(offsetLocation, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, 0);
+        gl.enableVertexAttribArray(offsetLocation);
+
+        gl.vertexAttribPointer(offsetLocation1, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (1 * bytesPerRow));
+        gl.enableVertexAttribArray(offsetLocation1);
+
+        gl.vertexAttribPointer(offsetLocation2, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (2 * bytesPerRow));
+        gl.enableVertexAttribArray(offsetLocation2);
+
+        gl.vertexAttribPointer(offsetLocation3, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (3 * bytesPerRow));
+        gl.enableVertexAttribArray(offsetLocation3);
+
+        gl.vertexAttribDivisor(offsetLocation, 1);
+        gl.vertexAttribDivisor(offsetLocation1, 1);
+        gl.vertexAttribDivisor(offsetLocation2, 1);
+        gl.vertexAttribDivisor(offsetLocation3, 1);
+
+        gl.drawArraysInstanced(this.style, 0, this.vertex_indices.length, this.offsets.length / 16);
+
+        gl.vertexAttribDivisor(offsetLocation, 0);
+        gl.vertexAttribDivisor(offsetLocation1, 0);
+        gl.vertexAttribDivisor(offsetLocation2, 0);
+        gl.vertexAttribDivisor(offsetLocation3, 0);
+    }
+}
+
+class LightDir {
+    constructor(pos, color, luminacity, ambient, diffuse, specular, shadows, toggle) {
+        this.pos = pos || [10, 200, 10];
+        this.color = color || [1, 1, 1];
+        this.luminacity = luminacity || 1;
+        this.ambient = ambient || 0.2;
+        this.diffuse = diffuse || 1;
+        this.specular = specular || 1;
+        this.shadows = shadows || true;
+        this.toggle = toggle || true;
+
+        this.view_matrix = [];
+        this.proj_matrix = [];
+
+        this.depthShader = null;
+        this.depthMapFBO = null;
+        this.depthMap = null
+        this.SHADOW_WIDTH = 1024;
+        this.SHADOW_HEIGHT = 1024;
+    }
+
+    enableShadows() {
+        // TODO : break up into smaller functions
+        this.depthMapFBO = gl.createFramebuffer();
+
+        // 2D texture for shadow map
+        this.depthMap = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.depthMap);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, this.SHADOW_WIDTH, this.SHADOW_HEIGHT, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthMapFBO);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthMap, 0);
+        gl.drawBuffers([gl.NONE]);
+        gl.readBuffer(gl.NONE);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // Light space matrix
+        mat4.ortho(this.proj_matrix, -50, 50, -50, 50, -50, 600);
+        mat4.lookAt(this.view_matrix, this.pos, [0, 0, 0], [0, 1, 0]);
+
+        this.depthShader = compileShader("vs_shadowmap_depth", "fs_shadowmap_depth");
+    }
+
+    sendUniforms(shader, cam) {
+        gl.useProgram(shader);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(shader, "lightSpaceView_matrix"), false, this.view_matrix);
+        gl.uniformMatrix4fv(gl.getUniformLocation(shader, "lightSpaceProj_matrix"), false, this.proj_matrix);
+
+        gl.uniform3fv(gl.getUniformLocation(shader, "viewPos"), cam.pos);
+
+        gl.uniform3fv(gl.getUniformLocation(shader, "light_pos"), this.pos);
+        gl.uniform1f(gl.getUniformLocation(shader, "light_ambient"), this.ambient);
+        gl.uniform1f(gl.getUniformLocation(shader, "light_diffuse"), this.diffuse);
+        gl.uniform1f(gl.getUniformLocation(shader, "light_specular"), this.specular);
+        gl.uniform1f(gl.getUniformLocation(shader, "light_luminacity"), this.luminacity);
+        gl.uniform3fv(gl.getUniformLocation(shader, "light_color"), this.color);
+        gl.uniform1i(gl.getUniformLocation(shader, "lightToggle"), this.toggle);
+        gl.uniform1i(gl.getUniformLocation(shader, "shadowMap"), 0);
+        gl.uniform2f(gl.getUniformLocation(shader, "shadowMap_size"), this.SHADOW_WIDTH, this.SHADOW_HEIGHT);
+    }
+
+    sendShadowUniforms() {
+        gl.useProgram(this.depthShader);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.depthShader, "proj_matrix"), false, this.proj_matrix);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.depthShader, "view_matrix"), false, this.view_matrix);
+    }
+
+    renderShadowMap(objects) {
+        gl.useProgram(this.depthShader);
+
+        gl.viewport(0, 0, this.SHADOW_WIDTH, this.SHADOW_HEIGHT);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthMapFBO);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        var obj;
+        for (obj of objects) {
+            obj.render(this.depthShader);
+        }
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+}
+
+class Skybox {
+
+    constructor(faces) {
+
+        this.vertex_indices = [        
+            -1.0,  1.0, -1.0,
+            -1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0,  1.0, -1.0,
+            -1.0,  1.0, -1.0,
+
+            -1.0, -1.0,  1.0,
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
+             1.0, -1.0, -1.0,
+
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0,
+
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+             1.0, -1.0,  1.0
+        ];
+
+        this.vertex_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertex_indices), gl.STATIC_DRAW);
+
+        this.cubemapTexture = this.loadCubeMap(faces);
+        
+        this.shader = compileShader("vs_skybox", "fs_skybox");
+    }
+
+    loadCubeMap(faces) {
+
+        const textureID = gl.createTexture();
+
+        var promises = [];
+        for (var i = 0; i < faces.length; i++) {
+            promises.push(loadImage(faces[i]));
+        }
+
+        Promise.all(promises)
+            .then(function (images) {
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, textureID);
+
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+
+                images.forEach((img, i) => {
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGB, img.width, img.height, 0, gl.RGB, gl.UNSIGNED_BYTE, img);
+                });
+            });
+        return textureID;
+    }
+
+    render(proj_matrix, view_matrix) {
+
+        gl.depthFunc(gl.LEQUAL); 
+
+        gl.useProgram(this.shader);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.shader, "proj_matrix"), false, proj_matrix);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.shader, "view_matrix"), false, view_matrix);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
+        var _position = gl.getAttribLocation(this.shader, "position");
+        gl.vertexAttribPointer(_position, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(_position);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.cubemapTexture);
+        gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+        gl.depthFunc(gl.LESS);
+
+    }
+}
+
+export { Camera, ObjectInstanced3D, LightDir, compileShader, Skybox }
