@@ -73,7 +73,7 @@ class Boid {
         this.vel = velocity;
         this.node = null;
 
-        this.lookAheadDist = 10;
+        this.lookAheadDist = 25;
 
         this.norm = [0, 0, 0];
         this.force_avoidance = [0, 0, 0];
@@ -121,11 +121,10 @@ class Boid {
         for (n of this.nbhd) {
             if (n.id == this.id) { continue; }
             var dist = vec3.dist(this.pos, n.pos);
-            if (dist < radius) {
+            if (dist > 0 && dist < radius) {
                 var sepForce = [];
                 vec3.sub(sepForce, this.pos, n.pos);
                 vec3.normalize(sepForce, sepForce);
-                vec3.scale(sepForce, sepForce, 1.0 / radius**2); // Division by zero!?
                 vec3.add(avgSepForce, avgSepForce, sepForce);
                 count++;
             }
@@ -144,7 +143,7 @@ class Boid {
         }
     }
 
-    cohesion(coh_r, sep_r, maxSpeed, maxForce) {
+    cohesion(coh_r, maxSpeed, maxForce) {
         if (this.nbhd.length != 0) {
             var avgPoint = [0, 0, 0];
             var n;
@@ -152,7 +151,7 @@ class Boid {
             for (n of this.nbhd) {
                 if (n.id == this.id) { continue; }
                 var d = vec3.dist(this.pos, n.pos);
-                if (d < coh_r && d > sep_r) {
+                if (d > 0 && d < coh_r) {
                     vec3.add(avgPoint, avgPoint, n.pos);
                     count++;
                 }
