@@ -307,7 +307,7 @@ var animate = function (time) {
         nmb_boids_old = nmb_boids;
     }
 
-    var octree = new Octree(boids, 15, [0, yoffset, 0], 100, show_octree);
+    var octree = new Octree(boids, 6, [0, yoffset, 0], 100, show_octree);
     octree.build();
 
     //#region FRAME SETUP
