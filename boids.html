@@ -141,6 +141,7 @@
             <script id="vs_optimal" type="not-javascript">
                 attribute vec3 position;
                 attribute vec3 normal;
+                attribute vec3 texcoord;
                 attribute mat4 offset;
 
                 uniform mat4 proj_matrix;
@@ -164,6 +165,7 @@
             <script id="vs_shadowmap_depth" type="not-javascript">
                 attribute vec3 position;
                 attribute vec3 normal;
+                attribute vec3 texcoord;
                 attribute mat4 offset;
 
                 uniform mat4 proj_matrix;
@@ -180,9 +182,9 @@
             </script>
 
             <script id="vs_pulcher" type="not-javascript">
-
                 attribute vec3 position;
                 attribute vec3 normal;
+                attribute vec2 texcoord;
                 attribute mat4 offset;
 
                 uniform mat4 proj_matrix;
@@ -193,8 +195,8 @@
 
                 varying vec3 vFragPos;
                 varying vec4 vFragPosLightSpace;
-                //varying vec3 vColor;
                 varying vec3 vNormal;
+                varying vec2 vTexCoords;
 
                 void main() {
                     mat4 mo = model_matrix * offset;
@@ -205,8 +207,8 @@
                     gl_Position = mvp * vec4(position, 1.0);
                     vFragPos = vec3(mo * vec4(position, 1.0));
                     vFragPosLightSpace = lightMVP * vec4(vFragPos, 1.0);
-                    //vColor = color;
                     vNormal = mat3(mo) * normal;
+                    vTexCoords = texcoord;
                 }
             </script>
             <script id="fs_pulcher" type="not-javascript">
@@ -216,10 +218,10 @@
                 varying vec3 vFragPos;
                 varying vec4 vFragPosLightSpace;
                 varying vec3 vNormal;
+                varying vec2 vTexCoords;
 
                 uniform vec3 viewPos;
                 uniform int lightToggle;
-                uniform sampler2D shadowMap;
                 uniform vec2 shadowMap_size;
 
                 uniform vec3 light_pos;
@@ -230,6 +232,10 @@
                 uniform float light_luminacity;
 
                 uniform vec3 model_color;
+                uniform int useTexture;
+
+                uniform sampler2D shadowMap;
+                uniform sampler2D texture;
 
                 float in_shadow(vec4 fragPosLightSpace) {
 
@@ -272,6 +278,11 @@
                 void main() {
 
                     vec3 color = model_color;
+
+                    if (useTexture == 1) {
+                        color = vec3(texture2D(texture, vTexCoords));
+                    }
+
                     vec3 normal = normalize(vNormal);
 
                     // ambient
@@ -292,33 +303,68 @@
                     float shadow = in_shadow(vFragPosLightSpace);
                     float cosTheta = clamp( dot(normal, lightDir), 0.0, 1.0 );
 
-                    //vec3 finalColor = ambient + (1.0-shadow * ((diffuse*cosTheta)+specular));
                     vec3 lighting  = (ambient + (1.0-shadow) * (diffuse*cosTheta + specular)) * color * light_luminacity;
-                    //vec3 lighting  = (ambient + (diffuse*cosTheta + specular)) * color;
 
                     gl_FragColor = vec4(lighting, 1.0);
                 }
             </script>
 
             <script type="text/plain" id="boid.obj">
-                o Boid
-                v 0.000000 1.013128 -0.070203
-                v 0.999320 0.013808 -0.069366
-                v -0.000000 -0.985512 -0.068529
-                v -0.999320 0.013808 -0.069366
-                v 0.000000 0.015482 1.929273
-                vn 0.6667 0.6669 0.3328
-                vn 0.6667 -0.6664 0.3339
-                vn -0.6667 -0.6664 0.3339
-                vn -0.6667 0.6669 0.3328
-                vn 0.0000 -0.0008 -1.0000
-                s off
-                f 1//1 5//1 2//1
-                f 2//2 5//2 3//2
-                f 3//3 5//3 4//3
-                f 4//4 5//4 1//4
-                f 2//5 4//5 1//5
-                f 2//5 3//5 4//5
+                o Cone
+                v 0.000000 1.033009 -0.214394
+                v 0.631296 0.364479 -0.214395
+                v 0.631296 -0.364479 -0.214395
+                v -0.000000 -0.728958 -0.214395
+                v -0.000000 -0.000000 1.614394
+                v -0.631296 -0.364479 -0.214395
+                v -0.631296 0.364479 -0.214395
+                v 0.243716 0.577014 -0.214395
+                v -0.243716 0.577014 -0.214395
+                vt 0.715378 0.581472
+                vt 0.596678 0.047827
+                vt 0.715378 0.000000
+                vt 0.528759 0.047960
+                vt 0.356912 0.155928
+                vt 0.715378 0.451547
+                vt 1.000000 0.000000
+                vt 0.803270 0.529482
+                vt 1.000000 0.568449
+                vt 0.000000 0.415001
+                vt 0.356912 0.000000
+                vt 0.121158 0.510189
+                vt 0.233005 0.542744
+                vt 0.611819 0.628886
+                vt 0.709145 0.725515
+                vt 0.414241 0.951368
+                vt 0.356912 0.605308
+                vt 0.746460 0.581472
+                vt 0.746460 0.846968
+                vt 0.609015 1.000000
+                vt 0.356912 0.749703
+                vt 0.494357 0.596671
+                vn 0.8522 0.4555 0.2573
+                vn 0.9453 -0.0000 0.3263
+                vn 0.4726 -0.8186 0.3263
+                vn -0.4726 -0.8186 0.3263
+                vn -0.9453 0.0000 0.3263
+                vn -0.4551 0.8300 0.3225
+                vn 0.0000 0.0000 -1.0000
+                vn 0.4551 0.8300 0.3225
+                vn -0.8522 0.4555 0.2573
+                f 5/1/1 8/2/1 1/3/1
+                f 2/4/2 5/1/2 3/5/2
+                f 3/6/3 5/7/3 4/8/3
+                f 4/8/4 5/7/4 6/9/4
+                f 6/10/5 5/11/5 7/12/5
+                f 5/11/6 9/13/6 7/12/6
+                f 9/14/7 8/15/7 4/16/7
+                f 5/1/8 2/4/8 8/2/8
+                f 5/11/9 1/17/9 9/13/9
+                f 9/14/7 1/18/7 8/15/7
+                f 8/15/7 2/19/7 3/20/7
+                f 3/20/7 4/16/7 8/15/7
+                f 4/16/7 6/21/7 9/14/7
+                f 6/21/7 7/22/7 9/14/7
             </script>
             <script type="text/plain" id="cubeDebug.obj">
                 v -1.000000 -1.000000 1.000000

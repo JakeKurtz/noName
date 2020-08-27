@@ -42,11 +42,11 @@ function loadOBJ(obj, filename) {
                     var data = terms[n].split("/");
 
                     var vi = Number(data[0]);
-                    //var j = Number(data[1]);
+                    var ti = Number(data[1]);
                     var ni = Number(data[2]);
 
                     vertex_indices.push(vi);
-                    //texcoords.push(texcoords, texcoords_tmp[i]);
+                    texcoord_indices.push(ti);
                     normal_indices.push(ni);
                 }
                 break;
@@ -65,6 +65,12 @@ function loadOBJ(obj, filename) {
         normal_out.push.apply(normal_out, normal);
     }
 
+    for (var i = 0; i <= texcoord_indices.length; i++) {
+        var texcoordIndex = texcoord_indices[i] - 1;
+        var texcoord = texcoords_tmp[texcoordIndex];
+        texcoord_out.push.apply(texcoord_out, texcoord);
+    }
+
     obj.vertex_indices = vertex_indices;
 
     obj.vertex_buffer = gl.createBuffer();
@@ -75,9 +81,9 @@ function loadOBJ(obj, filename) {
     gl.bindBuffer(gl.ARRAY_BUFFER, obj.normal_buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normal_out), gl.STATIC_DRAW);
 
-    //obj.texcoord_buffer = gl.createBuffer();
-    //gl.bindBuffer(gl.ARRAY_BUFFER, obj.texcoord_buffer);
-    //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
+    obj.texcoord_buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.texcoord_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoord_out), gl.STATIC_DRAW);
 }
 
 function loadImage(src) {
@@ -134,8 +140,9 @@ class Camera {
         mat4.perspective(this.proj_matrix, radians(110), canvas.width / canvas.height, this.near, this.far);
     }
 
-    rotate(yaw, pitch) {
+    // PUBLIC //
 
+    rotate(yaw, pitch) {
         this.lookat[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
         this.lookat[1] = Math.sin(radians(pitch));
         this.lookat[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
@@ -145,104 +152,172 @@ class Camera {
         this.fov = val;
     }
 
-    sendUniforms(shader) {
-
+    update() {
         vec3.add(this.lookat, this.lookat, this.pos);
 
-        mat4.perspective(this.proj_matrix, this.fov * Math.PI / 180, canvas.width / canvas.height, this.near, this.far);
         mat4.lookAt(this.view_matrix, this.pos, this.lookat, this.up);
+        mat4.perspective(this.proj_matrix, this.fov * Math.PI / 180, canvas.width / canvas.height, this.near, this.far);
+    }
 
+    sendUniforms(shader) {
         gl.uniformMatrix4fv(gl.getUniformLocation(shader, "proj_matrix"), false, this.proj_matrix);
         gl.uniformMatrix4fv(gl.getUniformLocation(shader, "view_matrix"), false, this.view_matrix);
     }
 }
 
 class ObjectInstanced3D {
-    constructor(objfile) {
+    constructor(objfile, texturefile) {
+
+        var texturefile = texturefile || null;
 
         this.style = gl.TRIANGLES;
-
         this.model_matrix = [
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1];
-
         this.color = [1, 1, 1];
+        this.texture = null;
 
         this.vertex_indices = [];
         this.instanceCount = 0;
-
-        loadOBJ(this, objfile)
-
         this.offsets = [];
 
         this.offset_buffer = gl.createBuffer();
 
+        this.offsetLocation = 0;
+        this.offsetLocation1 = 0;
+        this.offsetLocation2 = 0;
+        this.offsetLocation3 = 0;
+
+        this.useTexture = false;
+        if (texturefile != null) {
+            this.useTexture = true;
+            this.texture = this.loadTexture(texturefile);
+        }
+
+        loadOBJ(this, objfile);
     }
+
+    // PUBLIC //
 
     addInstance(offset_matrix) {
         this.offsets.push.apply(this.offsets, offset_matrix);
     }
-
     clearInstances() {
         this.offsets.length = 0;
     }
-
     render(shader) {
-        // TODO break this up into smaller functions
+
         gl.useProgram(shader);
+
+        this.bindTexture(shader);
+        this.sendUniforms(shader);
+
+        this.setupPositionAttribute(shader);
+        this.setupNormalAttribute(shader);
+        this.setupTexcoordAttribute(shader);
+        this.setupOffsetAttribute(shader);
+
+        this.enableAttributeDivisor();
+
+        gl.drawArraysInstanced(this.style, 0, this.vertex_indices.length, this.offsets.length / 16);
+
+        this.disableAttributeDivisor();
+
+    }
+
+    // PRIVATE //
+
+    sendUniforms(shader) {
         gl.uniformMatrix4fv(gl.getUniformLocation(shader, "model_matrix"), false, this.model_matrix);
         gl.uniform3fv(gl.getUniformLocation(shader, "model_color"), this.color);
+        gl.uniform1i(gl.getUniformLocation(shader, "useTexture"), this.useTexture);
+    }
 
+    loadTexture(filepath) {
+        const textureID = gl.createTexture();
+
+        Promise.all([loadImage(filepath)])
+            .then(function (images) {
+                gl.bindTexture(gl.TEXTURE_2D, textureID);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                console.log(images);
+                var img = images[0];
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, img.width, img.height, 0, gl.RGB, gl.UNSIGNED_BYTE, img);
+                gl.generateMipmap(gl.TEXTURE_2D);
+
+            });
+        return textureID;
+    }
+    bindTexture(shader) {
+        gl.uniform1i(gl.getUniformLocation(shader, "texture"), 1);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    }
+
+    setupPositionAttribute(shader) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         var _position = gl.getAttribLocation(shader, "position");
         gl.vertexAttribPointer(_position, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(_position);
-
+    }
+    setupNormalAttribute(shader) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.normal_buffer);
         var _normal = gl.getAttribLocation(shader, "normal");
         gl.vertexAttribPointer(_normal, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(_normal);
-
+    }
+    setupTexcoordAttribute(shader) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.texcoord_buffer);
+        var _texcoord = gl.getAttribLocation(shader, "texcoord");
+        gl.vertexAttribPointer(_texcoord, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(_texcoord);
+    }
+    setupOffsetAttribute(shader) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.offset_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.offsets), gl.STATIC_DRAW);
-        var offsetLocation = gl.getAttribLocation(shader, "offset");
-        var offsetLocation1 = offsetLocation + 1;
-        var offsetLocation2 = offsetLocation + 2;
-        var offsetLocation3 = offsetLocation + 3;
+        this.offsetLocation = gl.getAttribLocation(shader, "offset");
+        this.offsetLocation1 = this.offsetLocation + 1;
+        this.offsetLocation2 = this.offsetLocation + 2;
+        this.offsetLocation3 = this.offsetLocation + 3;
 
         var floatsPerRow = 4
         var bytesPerRow = floatsPerRow * 4;
         var bytesPerMatrix = bytesPerRow * 4;
 
-        gl.vertexAttribPointer(offsetLocation, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, 0);
-        gl.enableVertexAttribArray(offsetLocation);
+        gl.vertexAttribPointer(this.offsetLocation, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, 0);
+        gl.enableVertexAttribArray(this.offsetLocation);
 
-        gl.vertexAttribPointer(offsetLocation1, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (1 * bytesPerRow));
-        gl.enableVertexAttribArray(offsetLocation1);
+        gl.vertexAttribPointer(this.offsetLocation1, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (1 * bytesPerRow));
+        gl.enableVertexAttribArray(this.offsetLocation1);
 
-        gl.vertexAttribPointer(offsetLocation2, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (2 * bytesPerRow));
-        gl.enableVertexAttribArray(offsetLocation2);
+        gl.vertexAttribPointer(this.offsetLocation2, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (2 * bytesPerRow));
+        gl.enableVertexAttribArray(this.offsetLocation2);
 
-        gl.vertexAttribPointer(offsetLocation3, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (3 * bytesPerRow));
-        gl.enableVertexAttribArray(offsetLocation3);
+        gl.vertexAttribPointer(this.offsetLocation3, floatsPerRow, gl.FLOAT, false, bytesPerMatrix, (3 * bytesPerRow));
+        gl.enableVertexAttribArray(this.offsetLocation3);
+   }
 
-        gl.vertexAttribDivisor(offsetLocation, 1);
-        gl.vertexAttribDivisor(offsetLocation1, 1);
-        gl.vertexAttribDivisor(offsetLocation2, 1);
-        gl.vertexAttribDivisor(offsetLocation3, 1);
-
-        gl.drawArraysInstanced(this.style, 0, this.vertex_indices.length, this.offsets.length / 16);
-
-        gl.vertexAttribDivisor(offsetLocation, 0);
-        gl.vertexAttribDivisor(offsetLocation1, 0);
-        gl.vertexAttribDivisor(offsetLocation2, 0);
-        gl.vertexAttribDivisor(offsetLocation3, 0);
+    enableAttributeDivisor() {
+        gl.vertexAttribDivisor(this.offsetLocation, 1);
+        gl.vertexAttribDivisor(this.offsetLocation1, 1);
+        gl.vertexAttribDivisor(this.offsetLocation2, 1);
+        gl.vertexAttribDivisor(this.offsetLocation3, 1);
+    }
+    disableAttributeDivisor() {
+        gl.vertexAttribDivisor(this.offsetLocation, 0);
+        gl.vertexAttribDivisor(this.offsetLocation1, 0);
+        gl.vertexAttribDivisor(this.offsetLocation2, 0);
+        gl.vertexAttribDivisor(this.offsetLocation3, 0);
     }
 }
 
 class LightDir {
+
     constructor(pos, color, luminacity, ambient, diffuse, specular, shadows, toggle) {
         this.pos = pos || [10, 100, 10];
         this.color = color || [1, 1, 1];
@@ -263,31 +338,7 @@ class LightDir {
         this.SHADOW_HEIGHT = 4096;
     }
 
-    enableShadows() {
-        // TODO : break up into smaller functions
-        this.depthMapFBO = gl.createFramebuffer();
-
-        // 2D texture for shadow map
-        this.depthMap = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, this.depthMap);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, this.SHADOW_WIDTH, this.SHADOW_HEIGHT, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthMapFBO);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthMap, 0);
-        gl.drawBuffers([gl.NONE]);
-        gl.readBuffer(gl.NONE);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-        // Light space matrix
-        mat4.ortho(this.proj_matrix, -100, 100, -100, 100, 0.1, 500);
-        mat4.lookAt(this.view_matrix, this.pos, [0, 0, 0], [0, 1, 0]);
-
-        this.depthShader = compileShader("vs_shadowmap_depth", "fs_shadowmap_depth");
-    }
+    // PUBLIC //
 
     sendUniforms(shader, cam) {
         gl.useProgram(shader);
@@ -307,15 +358,16 @@ class LightDir {
         gl.uniform1i(gl.getUniformLocation(shader, "shadowMap"), 0);
         gl.uniform2f(gl.getUniformLocation(shader, "shadowMap_size"), this.SHADOW_WIDTH, this.SHADOW_HEIGHT);
     }
-
-    sendShadowUniforms() {
-        gl.useProgram(this.depthShader);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.depthShader, "proj_matrix"), false, this.proj_matrix);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.depthShader, "view_matrix"), false, this.view_matrix);
+    enableShadows() {
+        this.setupDepthTexture();
+        this.attachDepthTexture();
+        this.buildLightSpaceMatrix();
+        this.depthShader = compileShader("vs_shadowmap_depth", "fs_shadowmap_depth");
     }
-
     renderShadowMap(objects) {
         gl.useProgram(this.depthShader);
+
+        this.sendShadowUniforms();
 
         gl.viewport(0, 0, this.SHADOW_WIDTH, this.SHADOW_HEIGHT);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthMapFBO);
@@ -327,6 +379,40 @@ class LightDir {
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    bindShadowMapTexture(shader) {
+        gl.uniform1i(gl.getUniformLocation(shader, "shadowMap"), 0);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.depthMap);
+    }
+
+    // PRIVATE //
+
+    setupDepthTexture() {
+        this.depthMap = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.depthMap);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, this.SHADOW_WIDTH, this.SHADOW_HEIGHT, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+    attachDepthTexture() {
+        this.depthMapFBO = gl.createFramebuffer();
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthMapFBO);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthMap, 0);
+        gl.drawBuffers([gl.NONE]);
+        gl.readBuffer(gl.NONE);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+    buildLightSpaceMatrix() {
+        mat4.ortho(this.proj_matrix, -100, 100, -100, 100, 0.1, 500);
+        mat4.lookAt(this.view_matrix, this.pos, [0, 0, 0], [0, 1, 0]);
+    }
+    sendShadowUniforms() {
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.depthShader, "proj_matrix"), false, this.proj_matrix);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.depthShader, "view_matrix"), false, this.view_matrix);
     }
 }
 
@@ -387,6 +473,31 @@ class Skybox {
         this.shader = compileShader("vs_skybox", "fs_skybox");
     }
 
+    // PUBLIC //
+
+    render(proj_matrix, view_matrix) {
+
+        gl.depthFunc(gl.LEQUAL); 
+
+        gl.useProgram(this.shader);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.shader, "proj_matrix"), false, proj_matrix);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.shader, "view_matrix"), false, view_matrix);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
+        var _position = gl.getAttribLocation(this.shader, "position");
+        gl.vertexAttribPointer(_position, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(_position);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.cubemapTexture);
+        gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+        gl.depthFunc(gl.LESS);
+    }
+
+    // PRIVATE //
+
     loadCubeMap(faces) {
 
         const textureID = gl.createTexture();
@@ -411,28 +522,6 @@ class Skybox {
                 });
             });
         return textureID;
-    }
-
-    render(proj_matrix, view_matrix) {
-
-        gl.depthFunc(gl.LEQUAL); 
-
-        gl.useProgram(this.shader);
-
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.shader, "proj_matrix"), false, proj_matrix);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.shader, "view_matrix"), false, view_matrix);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-        var _position = gl.getAttribLocation(this.shader, "position");
-        gl.vertexAttribPointer(_position, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(_position);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.cubemapTexture);
-        gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-        gl.depthFunc(gl.LESS);
-
     }
 }
 

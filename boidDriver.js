@@ -8,8 +8,8 @@ glMatrix.setMatrixArrayType(Array);
 var g_boid_time_step = 0.05;
 
 var g_seperation_radius = 3;
-var g_alignment_radius = 20;
-var g_cohesion_radius = 50;
+var g_alignment_radius = 5;
+var g_cohesion_radius = 10;
 
 var g_maxSpeed = 30;
 var g_maxForce = 15;
@@ -101,22 +101,13 @@ var mat = mat4.create();
 mat4.scale(mat, mat, [1, 1, 1]);
 mat4.translate(mat,mat,[100,100,100]);
 
-var nmb_boids = 500;
+var nmb_boids = 100;
 var nmb_boids_old = nmb_boids;
 var boids = [];
 
-for (var i = 0; i < nmb_boids; i++) {
-    var x = randrange(-1,1) * 15;
-    var y = randrange(-1, 1) * 15;
-    var z = randrange(-1, 1) * 15;
+addBoids(nmb_boids, boids);
 
-    var a = Math.random();
-    var b = Math.random();
-    var c = Math.random();
-
-    boids.push(new Boid(i, [x, y + yoffset, z], [a,b,c]));
-}
-
+var b;
 for (b of boids) {
     var mat = mat4.fromValues(
         1, 0.0, 0.0, 0.0,
@@ -319,10 +310,12 @@ var animate = function (time) {
     gl.enable(gl.DEPTH_TEST);
     //#endregion
 
-    //#region MANIPULATION
+    //#region CAMERA
 
     cam.zoom(zoom);
     cam.rotate(yaw, pitch);
+
+    cam.update();
 
     //#endregion
 
@@ -373,7 +366,6 @@ var animate = function (time) {
 
         gl.cullFace(gl.FRONT);
 
-        light.sendShadowUniforms();
         light.renderShadowMap([
             boidMesh
         ]);
@@ -386,12 +378,9 @@ var animate = function (time) {
         //#endregion
 
         gl.useProgram(shader);
-        gl.uniform1i(gl.getUniformLocation(shader, "shadowMap"), 0);
 
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, light.depthMap);
+        light.bindShadowMapTexture(shader);
         cam.sendUniforms(shader);
-
         light.sendUniforms(shader, cam);
         boidMesh.render(shader);
 
