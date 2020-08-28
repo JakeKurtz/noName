@@ -241,15 +241,13 @@ class ObjectInstanced3D {
         Promise.all([loadImage(filepath)])
             .then(function (images) {
                 gl.bindTexture(gl.TEXTURE_2D, textureID);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                console.log(images);
                 var img = images[0];
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, img.width, img.height, 0, gl.RGB, gl.UNSIGNED_BYTE, img);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, img.width, img.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, img);
                 gl.generateMipmap(gl.TEXTURE_2D);
-
             });
         return textureID;
     }
@@ -279,7 +277,7 @@ class ObjectInstanced3D {
     }
     setupOffsetAttribute(shader) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.offset_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.offsets), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.offsets), gl.DYNAMIC_DRAW);
         this.offsetLocation = gl.getAttribLocation(shader, "offset");
         this.offsetLocation1 = this.offsetLocation + 1;
         this.offsetLocation2 = this.offsetLocation + 2;
@@ -318,14 +316,14 @@ class ObjectInstanced3D {
 
 class LightDir {
 
-    constructor(pos, color, luminacity, ambient, diffuse, specular, shadows, toggle) {
+    constructor(pos, color, luminacity, ambient, diffuse, specular, enableShadow, toggle) {
         this.pos = pos || [10, 100, 10];
         this.color = color || [1, 1, 1];
         this.luminacity = luminacity || 1;
         this.ambient = ambient || 0.2;
         this.diffuse = diffuse || 1;
-        this.specular = specular || 1;
-        this.shadows = shadows || true;
+        this.specular = specular || 0;
+        this.enableShadow = enableShadow || true;
         this.toggle = toggle || true;
 
         this.view_matrix = [];
@@ -356,6 +354,7 @@ class LightDir {
         gl.uniform3fv(gl.getUniformLocation(shader, "light_color"), this.color);
         gl.uniform1i(gl.getUniformLocation(shader, "lightToggle"), this.toggle);
         gl.uniform1i(gl.getUniformLocation(shader, "shadowMap"), 0);
+        gl.uniform1i(gl.getUniformLocation(shader, "enableShadow"), this.enableShadow);
         gl.uniform2f(gl.getUniformLocation(shader, "shadowMap_size"), this.SHADOW_WIDTH, this.SHADOW_HEIGHT);
     }
     enableShadows() {
@@ -363,6 +362,9 @@ class LightDir {
         this.attachDepthTexture();
         this.buildLightSpaceMatrix();
         this.depthShader = compileShader("vs_shadowmap_depth", "fs_shadowmap_depth");
+    }
+    disableShadows() {
+        this.enableShadow = false;
     }
     renderShadowMap(objects) {
         gl.useProgram(this.depthShader);

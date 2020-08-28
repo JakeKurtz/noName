@@ -7,9 +7,9 @@ glMatrix.setMatrixArrayType(Array);
 
 var g_boid_time_step = 0.05;
 
-var g_seperation_radius = 3;
-var g_alignment_radius = 5;
-var g_cohesion_radius = 10;
+var g_seperation_radius = 4;
+var g_alignment_radius = 6;
+var g_cohesion_radius = 12;
 
 var g_maxSpeed = 30;
 var g_maxForce = 15;
@@ -55,7 +55,7 @@ function killBoids(nmb_boids, boids) {
 
 //#region Init
 
-// Skybox
+// SKYBOX //
 
 var faces = [
     "./graphics/skybox/right.jpg",
@@ -66,7 +66,7 @@ var faces = [
     "./graphics/skybox/back.jpg"];
 var sky = new Skybox(faces);
 
-// Walls
+// WALLS/COLLISION //
 
 var yoffset = 50;
 
@@ -83,23 +83,46 @@ var wallFar = new Plane([0, yoffset, -volDepth], [0, 0, 1]);
 
 var walls = [wallTop, wallBottom, wallLeft, wallRight, wallNear, wallFar];
 
-var use_fancy = true;
-var use_optimal = false;
-var show_octree = true;
+// CAMERA //
 
 var eX = 0;
-var eY = 0;
+var eY = 10;
 var eZ = 0;
 var zoom = 110;
 
 var cam = new Camera([eX, eY, eZ], zoom);
-var boidMesh = new ObjectInstanced3D('boid.obj');
 
-boidMesh.color = [1, 1, 1];
+// GROUND //
+
+var ground = new ObjectInstanced3D('plane.obj', 'ground.png');
 
 var mat = mat4.create();
-mat4.scale(mat, mat, [1, 1, 1]);
-mat4.translate(mat,mat,[100,100,100]);
+mat4.scale(mat, mat, [100, 100, 100]);
+mat4.translate(mat, mat, [0, 0, 0]);
+
+ground.addInstance(mat);
+ground.color = [0, 1, 0];
+
+var grass = new ObjectInstanced3D('grass.obj', 'grass.png');
+
+for (var i = 0; i < 10000; i++) {
+    var x = randrange(-1, 1) * 100;
+    var z = randrange(-1, 1) * 100;
+
+    var mat = mat4.fromValues(
+        1, 0.0, 0.0, 0.0,
+        0.0, 1, 0.0, 0.0,
+        0.0, 0.0, 1, 0.0,
+        x, 0.0, z, 1.0
+    );
+
+    grass.addInstance(mat);
+}
+
+// BOIDS //
+
+var boidMesh = new ObjectInstanced3D('boid.obj');
+boidMesh.color = [1, 1, 1];
 
 var nmb_boids = 100;
 var nmb_boids_old = nmb_boids;
@@ -118,11 +141,20 @@ for (b of boids) {
     boidMesh.addInstance(mat);
 }
 
+// LIGHT/SHADERS //
+
 var light = new LightDir();
 light.enableShadows();
 
 var shader = compileShader("vs_pulcher", "fs_pulcher");
 var shader_basic = compileShader("vs_optimal", "fs_optimal");
+var shader_grass = compileShader("vs_grass", "fs_pulcher");
+
+// BOOLS/MISC //
+
+var use_fancy = true;
+var use_optimal = false;
+var show_octree = true;
 
 var THETA = 0, PHI = 0;
 var time_old = 0;
@@ -282,6 +314,9 @@ canvas.addEventListener('wheel', mouseScroll, false); // modern desktop
 
 //#endregion
 
+var day = new Date();
+var foo = day.getTime();
+
 var animate = function (time) {
 
     use_fancy = document.getElementById("radio_fancy").checked;
@@ -302,7 +337,7 @@ var animate = function (time) {
     //#region FRAME SETUP
     resizeCanvas()
 
-    gl.clearColor(1.20, 1.20, 1.20, 1.0);
+    gl.clearColor(.20, .20, .20, 1.0);
     gl.clearDepth(1.0);
     gl.viewport(0.0, 0.0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -316,6 +351,8 @@ var animate = function (time) {
     cam.rotate(yaw, pitch);
 
     cam.update();
+
+    //vec3.rotateY(light.pos, light.pos, [0,0,0], 0.1);
 
     //#endregion
 
@@ -352,7 +389,7 @@ var animate = function (time) {
     boidMesh.clearInstances();
     for (b of boids) {
         var boidMatrix = b.getBNT();
-        mat4.scale(boidMatrix, boidMatrix, [0.6,0.6,0.6]);
+        mat4.scale(boidMatrix, boidMatrix, [1,1,1]);
         boidMesh.addInstance(boidMatrix);
     }
     
@@ -364,6 +401,7 @@ var animate = function (time) {
 
         //#region SHADOW MAPS
 
+        gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.FRONT);
 
         light.renderShadowMap([
@@ -373,7 +411,7 @@ var animate = function (time) {
         gl.viewport(0.0, 0.0, canvas.width, canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        gl.cullFace(gl.BACK);
+        gl.disable(gl.CULL_FACE);
 
         //#endregion
 
@@ -383,11 +421,21 @@ var animate = function (time) {
         cam.sendUniforms(shader);
         light.sendUniforms(shader, cam);
         boidMesh.render(shader);
+        ground.render(shader);
+
+        gl.useProgram(shader_grass);
+        cam.sendUniforms(shader_grass);
+        light.sendUniforms(shader_grass, cam);
+
+        var day = new Date();
+        gl.uniform1f(gl.getUniformLocation(shader_grass, "time"), day.getTime()-foo);
+        grass.render(shader_grass);
 
     } else if (use_optimal) {
 
         gl.useProgram(shader_basic);
         cam.sendUniforms(shader_basic);
+        light.sendUniforms(shader_basic, cam);
 
         boidMesh.render(shader_basic);
     }

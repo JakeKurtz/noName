@@ -113,6 +113,64 @@
                 </div>
             </div>
 
+            <script id="vs_grass" type="not-javascript">
+                attribute vec3 position;
+                attribute vec3 normal;
+                attribute vec2 texcoord;
+                attribute mat4 offset;
+
+                uniform mat4 proj_matrix;
+                uniform mat4 view_matrix;
+                uniform mat4 model_matrix;
+                uniform mat4 lightSpaceView_matrix;
+                uniform mat4 lightSpaceProj_matrix;
+                uniform float time;
+
+                varying vec3 vFragPos;
+                varying vec4 vFragPosLightSpace;
+                varying vec3 vNormal;
+                varying vec2 vTexCoords;
+
+                vec3 CalcTranslation(vec2 objPosition, float time, vec3 windDir, float windStr) {
+                    vec3 ret;
+
+                    float windGustDistance = 0.2;
+                    float windFrecuency = 0.005;
+                    float objectHeight = 0.1;
+
+                    ret.x += cos( time * windFrecuency + objPosition.x * windGustDistance) * objectHeight * windStr * windDir.x;
+                    ret.y += sin( time * windFrecuency + objPosition.y * windGustDistance) * objectHeight * windStr * windDir.y;
+
+                    return ret;
+                }
+
+                void main() {
+
+                    vec3 temp_Pos = position;
+                    vec3 temp_Normal = normal;
+
+                    vec3 windDirection = vec3(1.0, 0.0, 1.0);
+                    float windStrength = 5.0;
+
+                    // ANIMATION //
+                    if (texcoord.y >= 0.1) {
+                        vec2 obj_position = vec2(offset[3][0], offset[3][2]);
+                        vec3 objectTranslation = CalcTranslation(obj_position, time, windDirection, windStrength);
+                        temp_Pos = position + objectTranslation;
+                    }
+
+                    mat4 mvp = proj_matrix * view_matrix * offset;
+
+                    mat4 lightMVP = lightSpaceProj_matrix * lightSpaceView_matrix;
+
+                    gl_Position = mvp * vec4(temp_Pos, 1.0);
+                    vFragPos = vec3(offset * vec4(temp_Pos, 1.0));
+                    vFragPosLightSpace = lightMVP * vec4(vFragPos, 1.0);
+                    vNormal = mat3(offset) * normal;
+                    vTexCoords = texcoord;
+                }
+            </script>
+
             <script id="vs_skybox" type="not-javascript">
                 attribute vec3 position;
 
@@ -178,6 +236,10 @@
                 }
             </script>
             <script id="fs_shadowmap_depth" type="not-javascript">
+                //uniform sampler2D texture;
+
+                //if (texture2D(texture, vTexCoords).a < 0.1) discard;
+
                 void main() {}
             </script>
 
@@ -200,14 +262,14 @@
 
                 void main() {
                     mat4 mo = model_matrix * offset;
-                    mat4 mvp = proj_matrix * view_matrix * mo;
+                    mat4 mvp = proj_matrix * view_matrix * offset;
 
                     mat4 lightMVP = lightSpaceProj_matrix * lightSpaceView_matrix;
 
                     gl_Position = mvp * vec4(position, 1.0);
-                    vFragPos = vec3(mo * vec4(position, 1.0));
+                    vFragPos = vec3(offset * vec4(position, 1.0));
                     vFragPosLightSpace = lightMVP * vec4(vFragPos, 1.0);
-                    vNormal = mat3(mo) * normal;
+                    vNormal = mat3(offset) * normal;
                     vTexCoords = texcoord;
                 }
             </script>
@@ -233,6 +295,7 @@
 
                 uniform vec3 model_color;
                 uniform int useTexture;
+                uniform int enableShadow;
 
                 uniform sampler2D shadowMap;
                 uniform sampler2D texture;
@@ -277,6 +340,8 @@
 
                 void main() {
 
+                    if (texture2D(texture, vTexCoords).a < 0.1) discard;
+
                     vec3 color = model_color;
 
                     if (useTexture == 1) {
@@ -296,11 +361,15 @@
                     // specular
                     vec3 viewDir = normalize(viewPos - vFragPos);
                     vec3 reflectDir = reflect(-lightDir, normal);
-                    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+                    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 4.0);
                     vec3 specular = vec3(light_specular) * spec * light_color;
 
-                    // calculate shadow
-                    float shadow = in_shadow(vFragPosLightSpace);
+                    float shadow = 0.0;
+
+                    if (enableShadow == 1) {
+                        // calculate shadow
+                        shadow = in_shadow(vFragPosLightSpace);
+                    }
                     float cosTheta = clamp( dot(normal, lightDir), 0.0, 1.0 );
 
                     vec3 lighting  = (ambient + (1.0-shadow) * (diffuse*cosTheta + specular)) * color * light_luminacity;
@@ -392,7 +461,54 @@
                 f 5//2 1//2 3//2
                 f 3//4 7//4 5//4
             </script>
-
+            <script id="plane.obj" type="text/plain">
+                o Plane
+                v -1.000000 0.000000 1.000000
+                v 1.000000 0.000000 1.000000
+                v -1.000000 0.000000 -1.000000
+                v 1.000000 0.000000 -1.000000
+                vt 1.000000 0.000000
+                vt 0.000000 1.000000
+                vt 0.000000 0.000000
+                vt 1.000000 1.000000
+                vn 0.0000 1.0000 0.0000
+                f 2/1/1 3/2/1 1/3/1
+                f 2/1/1 4/4/1 3/2/1
+            </script>
+            <script id="grass.obj" type="text/plain">
+                v -0.500000 0.000000 -0.866025
+                v 0.500000 0.000000 0.866025
+                v -0.500000 2.000000 -0.866025
+                v 0.500000 2.000000 0.866025
+                v -0.500000 0.000000 0.866025
+                v 0.500000 0.000000 -0.866026
+                v -0.500000 2.000000 0.866026
+                v 0.500000 2.000000 -0.866025
+                v -1.000000 0.000000 -0.000000
+                v 1.000000 0.000000 -0.000000
+                v -1.000000 2.000000 0.000000
+                v 1.000000 2.000000 0.000000
+                vt 1.000000 0.000000
+                vt 0.000000 1.000000
+                vt 0.000000 0.000000
+                vt 1.000000 0.000000
+                vt 0.000000 1.000000
+                vt 0.000000 0.000000
+                vt 1.000000 0.000000
+                vt 0.000000 1.000000
+                vt 0.000000 0.000000
+                vt 1.000000 1.000000
+                vt 1.000000 1.000000
+                vt 1.000000 1.000000
+                vn -0.0000 1.0000 0.0000
+                s 1
+                f 2/1/1 3/2/1 1/3/1
+                f 6/4/1 7/5/1 5/6/1
+                f 10/7/1 11/8/1 9/9/1
+                f 2/1/1 4/10/1 3/2/1
+                f 6/4/1 8/11/1 7/5/1
+                f 10/7/1 12/12/1 11/8/1
+            </script>
             <script src="./boidDriver.js" type="module"></script>
 
             <script>
