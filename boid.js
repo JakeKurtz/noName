@@ -203,7 +203,7 @@ class Boid {
         }
     }
 
-    wallCollision(walls, maxSpeed, maxForce) {
+    wallCollision(walls, maxSpeed, maxForce, center, radius) {
         var rayPos = [];
         var rayDir = [];
         vec3.normalize(rayDir, this.vel);
@@ -240,9 +240,9 @@ class Boid {
     }
 
     forceFeild(maxSpeed, maxForce) {
-        if (vec3.dist([0, 0, 0], this.pos) > 100.0) {
+        if (vec3.dist(center, this.pos) > radius) {
             var force = []
-            vec3.sub(force, [0, 0, 0], this.pos);
+            vec3.sub(force, center, this.pos);
 
             vec3.normalize(force, force);
             vec3.scale(force, force, maxSpeed);

@@ -375,6 +375,7 @@
                     vec3 lighting  = (ambient + (1.0-shadow) * (diffuse*cosTheta + specular)) * color * light_luminacity;
 
                     gl_FragColor = vec4(lighting, 1.0);
+                    //gl_FragColor = texture2D(texture, vTexCoords);
                 }
             </script>
 

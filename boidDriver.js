@@ -2,14 +2,15 @@ import { Octree } from './octree.js'
 import { Boid, Plane } from './boid.js'
 import { Camera, ObjectInstanced3D, LightDir, compileShader, Skybox } from './render.js'
 import { glMatrix, mat4, vec3 } from './gl-matrix/src/index.js'
+import { poisson } from './poisson.js'
 
 glMatrix.setMatrixArrayType(Array);
 
 var g_boid_time_step = 0.05;
 
 var g_seperation_radius = 4;
-var g_alignment_radius = 6;
-var g_cohesion_radius = 12;
+var g_alignment_radius = 8;
+var g_cohesion_radius = 10;
 
 var g_maxSpeed = 30;
 var g_maxForce = 15;
@@ -70,9 +71,9 @@ var sky = new Skybox(faces);
 
 var yoffset = 50;
 
-var volHeight = 50;
-var volWidth = 50;
-var volDepth = 50;
+var volHeight = 45;
+var volWidth = 70;
+var volDepth = 70;
 
 var wallTop = new Plane([0, volHeight + yoffset, 0], [0, -1, 0]);
 var wallBottom = new Plane([0, -volHeight + yoffset, 0], [0, 1, 0]);
@@ -105,17 +106,18 @@ ground.color = [0, 1, 0];
 
 var grass = new ObjectInstanced3D('grass.obj', 'grass.png');
 
-for (var i = 0; i < 10000; i++) {
-    var x = randrange(-1, 1) * 100;
-    var z = randrange(-1, 1) * 100;
+var points = poisson(-100, 100, -100, 100, 1.2, 30);
+
+for (var i = 0; i < points.length; i++) {
+
+    if (points[i] == undefined) continue;
 
     var mat = mat4.fromValues(
         1, 0.0, 0.0, 0.0,
         0.0, 1, 0.0, 0.0,
         0.0, 0.0, 1, 0.0,
-        x, -0.1, z, 1.0
+        points[i][0], 0, points[i][1], 1.0
     );
-
     grass.addInstance(mat);
 }
 
@@ -369,7 +371,6 @@ var animate = function (time) {
         b.cohesion(g_cohesion_radius, g_seperation_radius, g_maxSpeed, g_maxForce);
 
         b.wallCollision(walls, g_maxSpeed, g_maxForce);
-        b.forceFeild(g_maxSpeed, g_maxForce);
     }
     
     // Euler integration //

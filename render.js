@@ -243,7 +243,7 @@ class ObjectInstanced3D {
                 gl.bindTexture(gl.TEXTURE_2D, textureID);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                 var img = images[0];
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, img.width, img.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, img);
@@ -317,7 +317,7 @@ class ObjectInstanced3D {
 class LightDir {
 
     constructor(pos, color, luminacity, ambient, diffuse, specular, enableShadow, toggle) {
-        this.pos = pos || [10, 100, 10];
+        this.pos = pos || [1, 1000, 0];
         this.color = color || [1, 1, 1];
         this.luminacity = luminacity || 1;
         this.ambient = ambient || 0.2;
@@ -409,7 +409,7 @@ class LightDir {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     buildLightSpaceMatrix() {
-        mat4.ortho(this.proj_matrix, -100, 100, -100, 100, 0.1, 500);
+        mat4.ortho(this.proj_matrix, -10, 10, -10, 10, 0.1, 100);
         mat4.lookAt(this.view_matrix, this.pos, [0, 0, 0], [0, 1, 0]);
     }
     sendShadowUniforms() {
