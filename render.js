@@ -332,8 +332,8 @@ class LightDir {
         this.depthShader = null;
         this.depthMapFBO = null;
         this.depthMap = null
-        this.SHADOW_WIDTH = 16384;
-        this.SHADOW_HEIGHT = 16384;
+        this.SHADOW_WIDTH = 4096;
+        this.SHADOW_HEIGHT = 4096;
     }
 
     // PUBLIC //
