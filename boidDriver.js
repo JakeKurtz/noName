@@ -157,6 +157,7 @@ var shader_grass = compileShader("vs_grass", "fs_pulcher");
 var use_fancy = true;
 var use_optimal = false;
 var show_octree = true;
+var show_grass = true;
 
 var THETA = 0, PHI = 0;
 var time_old = 0;
@@ -324,6 +325,7 @@ var animate = function (time) {
     use_fancy = document.getElementById("radio_fancy").checked;
     use_optimal = document.getElementById("radio_optimal").checked;
     show_octree = document.getElementById("show_octree").checked;
+    show_grass = document.getElementById("show_grass").checked;
     nmb_boids = Number(document.getElementById("slider_boids").value);
     g_boid_time_step = Number(document.getElementById("slider_time").value) / 1000.0;
 
@@ -424,13 +426,15 @@ var animate = function (time) {
         boidMesh.render(shader);
         ground.render(shader);
 
-        gl.useProgram(shader_grass);
-        cam.sendUniforms(shader_grass);
-        light.sendUniforms(shader_grass, cam);
+        if (show_grass) {
+            gl.useProgram(shader_grass);
+            cam.sendUniforms(shader_grass);
+            light.sendUniforms(shader_grass, cam);
 
-        var day = new Date();
-        gl.uniform1f(gl.getUniformLocation(shader_grass, "time"), day.getTime()-foo);
-        grass.render(shader_grass);
+            var day = new Date();
+            gl.uniform1f(gl.getUniformLocation(shader_grass, "time"), day.getTime() - foo);
+            grass.render(shader_grass);
+        }
 
     } else if (use_optimal) {
 
@@ -439,6 +443,7 @@ var animate = function (time) {
         light.sendUniforms(shader_basic, cam);
 
         boidMesh.render(shader_basic);
+        ground.render(shader_basic);
     }
 
     //#region Octree visualization

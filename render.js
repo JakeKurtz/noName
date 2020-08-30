@@ -332,8 +332,8 @@ class LightDir {
         this.depthShader = null;
         this.depthMapFBO = null;
         this.depthMap = null
-        this.SHADOW_WIDTH = 4096;
-        this.SHADOW_HEIGHT = 4096;
+        this.SHADOW_WIDTH = 16384;
+        this.SHADOW_HEIGHT = 16384;
     }
 
     // PUBLIC //
@@ -409,7 +409,7 @@ class LightDir {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     buildLightSpaceMatrix() {
-        mat4.ortho(this.proj_matrix, -100, 100, -100, 100, 0.1, 1000);
+        mat4.ortho(this.proj_matrix, -100, 100, -100, 100, 0.1, 500);
         mat4.lookAt(this.view_matrix, this.pos, [0, 0, 0], [0, 1, 0]);
     }
     sendShadowUniforms() {

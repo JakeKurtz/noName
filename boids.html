@@ -36,6 +36,11 @@
                 max-width: 60em;
             }
 
+            .objViewer .controls .checkbox {
+                //opacity: 0;
+                margin-top: 20px;
+            }
+
             .objViewer .controls {
                 display: grid;
                 grid-template-columns: 200px 200px 200px auto;
@@ -99,8 +104,9 @@
                     </div>
 
                     <div class="control-item">
-                        <br><br>
-                        <input type="checkbox" id="show_octree"><label> Show octree </label>
+                        <input type="checkbox" class="checkbox" id="show_octree"><label> Show octree </label>
+                        <br>
+                        <input type="checkbox" class="checkbox" id="show_grass" checked="checked"><label> Show grass </label>
                     </div>
 
                     <div class="control-item" input="radio">
@@ -325,7 +331,7 @@
                     for(int x = -1; x <= 1; ++x) {
                         for(int y = -1; y <= 1; ++y) {
                             float pcfDepth = texture2D(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-                            shadow += projCoords.z - bias > pcfDepth  ? 1.0 : 0.0;
+                            shadow += projCoords.z - 0.005 > pcfDepth  ? 1.0 : 0.0;
                         }
                     }
 
@@ -375,7 +381,6 @@
                     vec3 lighting  = (ambient + (1.0-shadow) * (diffuse*cosTheta + specular)) * color * light_luminacity;
 
                     gl_FragColor = vec4(lighting, 1.0);
-                    //gl_FragColor = texture2D(texture, vTexCoords);
                 }
             </script>
 
